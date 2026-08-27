@@ -58,18 +58,25 @@ export async function enterWithCode(code) {
     return participant;
   }
 
-  const { data: row, error } = await supabase
+  // maybeSingle()을 쓰지 않는다. 그쪽은 '테이블이 없음'과 '해당 코드 없음'을
+  // 똑같이 0행으로 삼켜 버려서, 수업 당일 SQL을 안 돌렸을 때 학생 화면에
+  // "명부에 없는 코드"가 뜨고 교사가 엉뚱한 곳을 뒤지게 된다.
+  const { data: rows, error } = await supabase
     .from('participants')
     .select('id, participant_code')
     .eq('participant_code', normalized)
-    .maybeSingle();
+    .limit(1);
 
-  if (error) throw new Error(`서버에 연결하지 못했어요: ${error.message}`);
-  if (!row) {
+  if (error) {
+    throw new Error(
+      `참여자 명부를 읽지 못했어요. 선생님께 알려 주세요. (${error.message})`
+    );
+  }
+  if (!rows?.length) {
     throw new Error(`'${normalized}'는 명부에 없는 코드예요. 선생님께 확인해 주세요.`);
   }
 
-  const participant = { id: row.id, code: row.participant_code };
+  const participant = { id: rows[0].id, code: rows[0].participant_code };
   localStorage.setItem(PARTICIPANT_KEY, JSON.stringify(participant));
   return participant;
 }
