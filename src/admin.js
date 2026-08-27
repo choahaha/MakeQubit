@@ -12,6 +12,10 @@ const LESSON_ORDER = lessons.map((l) => l.id);
 
 /* ===================== 서버 ===================== */
 
+function includeTest() {
+  return document.getElementById('include-test')?.checked === true;
+}
+
 async function api(path) {
   const response = await fetch(`${API_URL}/api/admin${path}`, {
     headers: { 'X-Admin-Token': token },
@@ -170,6 +174,10 @@ function renderLessonTable(data) {
     .map((id) => data.lessons.find((l) => l.lesson_id === id))
     .filter(Boolean);
 
+  // 커리큘럼에 없는 lesson_id로 남은 기록. 레슨을 재배치하기 전의 데이터라
+  // 조용히 버리면 '실행 수가 왜 안 맞지'가 된다. 따로 보여준다.
+  const orphans = data.lessons.filter((l) => !LESSON_ORDER.includes(l.lesson_id));
+
   for (const lesson of ordered) {
     const row = el('tr', 'border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition');
     row.addEventListener('click', () => openLesson(lesson.lesson_id));
@@ -197,6 +205,17 @@ function renderLessonTable(data) {
       row.appendChild(el('td', 'text-right px-2 font-code text-slate-600', String(value)));
     }
     table.appendChild(row);
+  }
+
+  const note = document.getElementById('orphan-note');
+  if (orphans.length) {
+    const runs = orphans.reduce((sum, l) => sum + l.runs, 0);
+    note.textContent =
+      `지금 커리큘럼에 없는 레슨 id로 남은 기록 ${orphans.length}건(실행 ${runs}회): `
+      + orphans.map((l) => l.lesson_id).join(', ');
+    note.classList.remove('hidden');
+  } else {
+    note.classList.add('hidden');
   }
 }
 
@@ -303,7 +322,18 @@ async function openParticipant(code) {
   }
 
   let lastLesson = null;
+  let lastDay = null;
   for (const item of timeline) {
+    const day = dayOf(item.at);
+    if (day !== lastDay) {
+      lastDay = day;
+      lastLesson = null;   // 날짜가 바뀌면 레슨 머리글도 다시 찍는다
+      const divider = el('div', 'flex items-center gap-3 pt-4 first:pt-0');
+      divider.appendChild(el('span',
+        'text-[11px] font-code font-bold text-slate-500 shrink-0', day));
+      divider.appendChild(el('div', 'flex-1 h-px bg-slate-200'));
+      body.appendChild(divider);
+    }
     const lessonId = item.data.lesson_id;
     if (lessonId && lessonId !== lastLesson) {
       lastLesson = lessonId;
@@ -327,14 +357,25 @@ const EVENT_LABEL = {
 };
 
 function timeOf(iso) {
-  return new Date(iso).toLocaleTimeString('ko-KR', { hour12: false });
+  // ko-KR 기본 형식은 '20시 7분 4초'라 좁은 칸에서 세 줄로 접힌다.
+  // 궤적은 시각을 세로로 훑어 읽는 화면이라 자릿수가 고정돼야 한다.
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+/** 같은 날이 이어지면 날짜는 한 번만 보여준다. */
+function dayOf(iso) {
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 function renderTimelineItem({ kind, at, data }) {
   if (kind === 'event') {
     const [label, color] = EVENT_LABEL[data.event_type] || [data.event_type, 'text-slate-500'];
     const row = el('div', 'flex items-baseline gap-3 pl-4 text-xs');
-    row.appendChild(el('span', 'font-code text-slate-500 w-16 shrink-0', timeOf(at)));
+    row.appendChild(el('span',
+      'font-code text-slate-400 w-[52px] shrink-0 tabular-nums', timeOf(at)));
     row.appendChild(el('span', `font-bold ${color}`, label));
     if (data.event_type === 'hint_open') {
       row.appendChild(el('span', 'text-slate-500', `${data.payload.hint_index}번째`));
@@ -350,7 +391,8 @@ function renderTimelineItem({ kind, at, data }) {
   if (kind === 'submission') {
     const box = el('div', 'ml-4 rounded-xl border border-primary/30 bg-primary-soft p-3');
     const head = el('div', 'flex items-baseline gap-3 mb-2');
-    head.appendChild(el('span', 'font-code text-xs text-slate-500 w-16 shrink-0', timeOf(at)));
+    head.appendChild(el('span',
+      'font-code text-xs text-slate-400 w-[52px] shrink-0 tabular-nums', timeOf(at)));
     head.appendChild(el('span', 'text-xs font-bold text-primary',
       `제출 #${data.submission_index} · ${data.passed ? '목표 달성' : '미달성'}`));
     head.appendChild(el('span', 'text-[11px] text-slate-500',
@@ -367,7 +409,8 @@ function renderTimelineItem({ kind, at, data }) {
   const ok = data.status === 'success';
   const box = el('div', `ml-4 rounded-xl border p-3 ${ok ? 'border-slate-200 bg-white' : 'border-red-200 bg-red-50'}`);
   const head = el('div', 'flex items-baseline gap-3 mb-2');
-  head.appendChild(el('span', 'font-code text-xs text-slate-500 w-16 shrink-0', timeOf(at)));
+  head.appendChild(el('span',
+    'font-code text-xs text-slate-400 w-[52px] shrink-0 tabular-nums', timeOf(at)));
   head.appendChild(el('span', `text-xs font-bold ${ok ? 'text-slate-700' : 'text-accent-red'}`,
     `실행 ${data.run_index}회차 · ${ok ? '성공' : data.error_type}`));
   if (data.execution_time_ms != null) {
@@ -397,7 +440,7 @@ function renderTimelineItem({ kind, at, data }) {
 async function load() {
   const dash = document.getElementById('dash');
   try {
-    overview = await api('/overview');
+    overview = await api(`/overview?include_test=${includeTest()}`);
   } catch (error) {
     showGateError(error.message);
     return false;
@@ -411,8 +454,12 @@ async function load() {
   for (const id of ['btn-refresh', 'btn-logout', 'scope-chip']) {
     document.getElementById(id).classList.remove('hidden');
   }
+  const toggle = document.getElementById('test-toggle-label');
+  toggle.classList.remove('hidden');
+  toggle.classList.add('flex');
   document.getElementById('scope-chip').textContent =
-    `참여자 ${overview.totals.participants}명 · 테스트 계정 제외`;
+    `참여자 ${overview.totals.participants}명 · `
+    + (includeTest() ? '테스트 계정 포함' : '테스트 계정 제외');
   return true;
 }
 
@@ -432,6 +479,7 @@ document.getElementById('gate-form').addEventListener('submit', async (event) =>
 });
 
 document.getElementById('btn-refresh').addEventListener('click', load);
+document.getElementById('include-test').addEventListener('change', load);
 document.getElementById('btn-logout').addEventListener('click', () => {
   sessionStorage.removeItem(TOKEN_KEY);
   window.location.reload();

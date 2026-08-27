@@ -22,6 +22,12 @@
       <span id="scope-chip" class="hidden text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full"></span>
     </div>
     <div class="flex items-center gap-2">
+      <label class="hidden items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none mr-1"
+             id="test-toggle-label" title="Q00·T00 같은 점검용 계정을 통계에 포함">
+        <input id="include-test" type="checkbox"
+               class="rounded border-slate-300 text-primary focus:ring-primary/30"/>
+        테스트 계정 포함
+      </label>
       <button id="btn-refresh" class="hidden text-xs font-bold text-slate-500 hover:text-primary transition flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-50">
         <span class="material-icons-round text-sm">refresh</span> 새로고침
       </button>
@@ -75,6 +81,7 @@
     <section class="bg-white rounded-2xl border border-slate-200 p-5">
       <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">레슨별 요약</h2>
       <div class="overflow-x-auto"><table id="lesson-table" class="w-full text-sm"></table></div>
+      <p id="orphan-note" class="hidden mt-3 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2"></p>
     </section>
 
   </main>

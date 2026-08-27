@@ -55,13 +55,22 @@ def _fetch(path: str, params: str = "") -> list:
 
 
 @router.get("/overview")
-def overview(x_admin_token: str | None = Header(None)):
-    """반 전체 현황 — 참여자 × 레슨 진행 격자와 레슨별 요약."""
+def overview(
+    include_test: bool = False,
+    x_admin_token: str | None = Header(None),
+):
+    """반 전체 현황 — 참여자 × 레슨 진행 격자와 레슨별 요약.
+
+    기본적으로 테스트 참여자(Q00, T00)는 뺀다. 점검용 실행이 반 통계에
+    섞이면 연구 데이터를 잘못 읽게 된다. 점검 자체를 확인할 때만
+    include_test=true를 쓴다.
+    """
     _require_auth(x_admin_token)
 
+    filter_clause = "" if include_test else "&is_test=eq.false"
     participants = _fetch(
         "participants",
-        "select=id,participant_code,group_label,is_test&is_test=eq.false"
+        f"select=id,participant_code,group_label,is_test{filter_clause}"
         "&order=participant_code",
     )
     by_id = {p["id"]: p["participant_code"] for p in participants}
@@ -80,6 +89,12 @@ def overview(x_admin_token: str | None = Header(None)):
         "learning_events",
         "select=participant_id,lesson_id,payload&event_type=eq.hint_open",
     )
+
+    # 참여자 목록에서 뺀 사람의 기록도 같이 빼야 한다. 이걸 안 하면
+    # 참여자는 0명인데 실행은 14건인 통계가 나온다 — 실제로 그랬다.
+    runs = [r for r in runs if r["participant_id"] in by_id]
+    subs = [s for s in subs if s["participant_id"] in by_id]
+    hints = [h for h in hints if h["participant_id"] in by_id]
 
     # 학생×레슨 셀 하나에 담기는 것
     cell = defaultdict(lambda: {
@@ -165,11 +180,17 @@ def lesson_detail(lesson_id: str, x_admin_token: str | None = Header(None)):
     _require_auth(x_admin_token)
     safe = quote(lesson_id, safe="")
 
-    runs = _fetch(
-        "code_runs",
-        f"select=participant_id,run_index,status,error_type,error_message,error_line,"
-        f"counts,circuit_spec,created_at&lesson_id=eq.{safe}&order=created_at",
-    )
+    known = {
+        p["id"] for p in _fetch("participants", "select=id&is_test=eq.false")
+    }
+    runs = [
+        r for r in _fetch(
+            "code_runs",
+            f"select=participant_id,run_index,status,error_type,error_message,error_line,"
+            f"counts,circuit_spec,created_at&lesson_id=eq.{safe}&order=created_at",
+        )
+        if r["participant_id"] in known
+    ]
 
     errors = Counter(r["error_type"] for r in runs if r["status"] != "success")
 
@@ -181,7 +202,11 @@ def lesson_detail(lesson_id: str, x_admin_token: str | None = Header(None)):
         ops = spec.get("ops") or []
         if not ops:
             continue
-        shapes[" → ".join(op["name"] for op in ops)] += 1
+        # barrier는 학생이 넣은 게 아니라 measure_all 같은 함수가 자동으로
+        # 붙이는 것이다. 형태 분포에 섞이면 같은 회로가 다르게 세어진다.
+        named = [op["name"] for op in ops if op["name"] != "barrier"]
+        if named:
+            shapes[" → ".join(named)] += 1
         for op in ops:
             if op["name"] == "cx" and len(op.get("qubits", [])) == 2:
                 cx_direction[f"{op['qubits'][0]}→{op['qubits'][1]}"] += 1

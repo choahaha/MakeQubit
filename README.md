@@ -141,6 +141,25 @@ IBM Quantum 교실 자료는 학생 각자의 Python 환경에 `qiskit`, `qiskit
 macOS에서는 `RLIMIT_AS`(메모리)가 제대로 적용되지 않는다. Linux(Docker) 배포에서는
 동작한다. 로컬 개발 중에는 타임아웃만 믿을 것.
 
+## 연구자 화면 (`/admin.html`)
+
+학생 데이터는 RLS 때문에 브라우저에서 읽을 수 없다. 읽으려면 `service_role` 키가
+필요한데 그 키는 RLS를 통째로 우회하므로, 조회는 전부 `backend/admin.py`를 거친다.
+키는 서버에만 두고 브라우저는 `ADMIN_TOKEN`으로 인증한다.
+
+```
+backend/.env
+  SUPABASE_SERVICE_KEY=   # Dashboard → Settings → API → service_role
+  ADMIN_TOKEN=            # 이것과 반드시 다른, 무작위 문자열
+```
+
+**`ADMIN_TOKEN`에 service_role 키를 넣지 말 것.** 그 값은 브라우저에 입력되고
+sessionStorage에 남고 요청 헤더로 매번 오간다. 그게 곧 DB 전체 권한이 되면
+연구자 화면을 여는 것만으로 키가 새어 나간다.
+
+기본적으로 테스트 참여자(`Q00`, `T00`)는 모든 통계에서 빠진다. 헤더의
+'테스트 계정 포함'을 켜면 점검 기록도 볼 수 있다.
+
 ## 피드백 수준
 
 연구가 보려는 것이 문제해결 과정이므로, 플랫폼이 먼저 답을 주면 그 과정이 사라진다.
