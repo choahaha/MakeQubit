@@ -10,22 +10,25 @@ const errorEl = document.getElementById('enter-error');
 
 function renderCurriculum() {
   const list = document.getElementById('curriculum');
-  let lastWeek = null;
+  let lastKey = null;
 
   for (const lesson of lessons) {
-    if (lesson.week !== lastWeek) {
-      lastWeek = lesson.week;
+    const key = `${lesson.week}-${lesson.session}`;
+    if (key !== lastKey) {
+      lastKey = key;
       const header = document.createElement('li');
       header.className = 'pt-3 first:pt-0 text-xs font-bold text-primary';
-      header.textContent = `${lesson.week}주차`;
+      header.textContent = `${lesson.week}주차 ${lesson.session}차시`;
       list.appendChild(header);
     }
     const item = document.createElement('li');
     item.className = 'flex items-baseline gap-2.5 text-sm';
     item.innerHTML = `
       <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 translate-y-[-2px]"></span>
-      <span class="font-medium">${lesson.title}</span>
-      <span class="text-slate-500 text-xs">${lesson.subtitle}</span>`;
+      <span class="font-medium"></span>
+      <span class="text-slate-500 text-xs"></span>`;
+    item.children[1].textContent = lesson.title;
+    item.children[2].textContent = lesson.subtitle;
     list.appendChild(item);
   }
 }

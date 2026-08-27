@@ -52,6 +52,34 @@ const CHECKERS = {
       : { passed: true };
   },
 
+  /** 충분히 여러 번 쟀는가 (shots) */
+  counts_total_min: (result, spec) => {
+    if (!result.counts) return fail('측정 결과가 아직 없어요.');
+    const total = Object.values(result.counts).reduce((sum, n) => sum + n, 0);
+    return total >= spec.min
+      ? { passed: true }
+      : fail(`${spec.min}번 이상 재야 하는데 ${total}번만 쟀어요.`);
+  },
+
+  /**
+   * 회로에 특정 연산이 들어 있는가.
+   *
+   * counts로는 확인할 수 없는 레슨이 있다 — Z만 건 회로는 측정 결과가
+   * 안 걸었을 때와 같고, 방향을 뒤집은 CX는 아무 일도 하지 않는다.
+   * 그 '아무 일도 안 일어남'이 배울 내용이므로, 게이트 자체를 확인해야 한다.
+   */
+  circuit_ops: (result, spec) => {
+    const ops = result.circuit_spec?.ops;
+    if (!ops) return fail('회로가 아직 만들어지지 않았어요.');
+    const missing = spec.ops.filter((wanted) => !ops.some((op) =>
+      op.name === wanted.name
+      && (!wanted.qubits || JSON.stringify(op.qubits) === JSON.stringify(wanted.qubits))));
+    if (!missing.length) return { passed: true };
+    const names = missing.map((m) =>
+      m.qubits ? `${m.name.toUpperCase()}(${m.qubits.join(', ')})` : m.name.toUpperCase());
+    return fail(`회로에 ${names.join(', ')}이(가) 아직 없어요.`);
+  },
+
   /** 출력에 특정 문자열이 있는가 */
   stdout_contains: (result, spec) => {
     const text = result.stdout || '';
@@ -73,7 +101,17 @@ export function checkLesson(lesson, result) {
   if (result.status !== 'success') {
     return fail('먼저 오류 없이 실행되어야 해요.');
   }
-  const spec = lesson.check;
+  // 조건이 둘 이상이면 전부 만족해야 한다. 첫 실패를 그대로 돌려준다 —
+  // 한 번에 하나씩 짚어 주는 편이 학생에게 낫다.
+  const specs = Array.isArray(lesson.check) ? lesson.check : [lesson.check];
+  for (const spec of specs) {
+    const outcome = runOne(spec, result);
+    if (!outcome.passed) return outcome;
+  }
+  return { passed: true };
+}
+
+function runOne(spec, result) {
   if (!spec || !spec.type) return { passed: true };
 
   const checker = CHECKERS[spec.type];

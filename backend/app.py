@@ -21,8 +21,10 @@ from pydantic import BaseModel, Field
 
 from runner import CodeTooLong, WALL_TIMEOUT_SECONDS, run_code
 from sandbox_child import MAX_QUBITS, MAX_SHOTS
+from admin import router as admin_router
 
 app = FastAPI(title="MakeQubit Execution API")
+app.include_router(admin_router)
 
 origins = [
     "http://localhost:5173",

@@ -51,7 +51,8 @@ function markComplete(id) {
 
 function renderLessonInfo() {
   document.title = `${lesson.title} — MakeQubit`;
-  document.getElementById('lesson-week').textContent = `${lesson.week}주차`;
+  document.getElementById('lesson-week').textContent =
+    `${lesson.week}주 ${lesson.session}차시`;
   document.getElementById('lesson-title').textContent = lesson.title;
   document.getElementById('lesson-goal').textContent = lesson.goal;
   const chip = document.getElementById('participant-chip');
