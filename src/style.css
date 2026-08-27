@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@theme {
+  /* EduQubit과 같은 팔레트 — 두 플랫폼을 오가는 학생이 같은 곳으로 느끼도록 */
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-primary-soft: #eef2ff;
+  --color-accent-green: #22c55e;
+  --color-accent-red: #ef4444;
+  --color-accent-amber: #f59e0b;
+
+  --font-display: "Outfit", sans-serif;
+  --font-sans: "Outfit", sans-serif;
+  --font-mono: "Space Grotesk", ui-monospace, monospace;
+  --font-code: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+  /* 회로 그림은 ┤├─╫ 같은 박스 문자를 끊김 없이 이어 그려야 한다.
+     웹폰트는 이 글자들의 좌우 여백이 제각각이라 시스템 등폭 폰트를 쓴다. */
+  --font-circuit: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --radius: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ===== CodeMirror ===== */
+/* 편집기는 카드 안에 들어앉아야 한다 — 자체 테두리와 배경은 지운다. */
+.cm-editor {
+  height: 100%;
+  font-family: var(--font-code);
+  font-size: 14px;
+  background: transparent;
+}
+.cm-editor.cm-focused { outline: none; }
+.cm-scroller { line-height: 1.65; padding: 12px 0; }
+.cm-gutters {
+  background: transparent;
+  border-right: 1px solid #e2e8f0;
+  color: #cbd5e1;
+}
+.cm-activeLine { background: rgba(99, 102, 241, 0.04); }
+.cm-activeLineGutter { background: transparent; color: #94a3b8; }
+.cm-selectionBackground,
+.cm-editor ::selection { background: rgba(99, 102, 241, 0.18) !important; }
+.cm-cursor { border-left-color: #4f46e5; }
+
+/* 오류가 난 줄을 편집기에서 직접 짚어 준다 */
+.cm-line.error-line {
+  background: rgba(239, 68, 68, 0.08);
+  box-shadow: inset 2px 0 0 #ef4444;
+}
+
+/* ===== 결과 히스토그램 ===== */
+.bar-grow {
+  animation: bar-grow 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* ===== 상태 전환 ===== */
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45); }
+  70%  { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+.pass-pulse { animation: pulse-ring 0.9s ease-out; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-5px); }
+  75%      { transform: translateX(5px); }
+}
+.shake { animation: shake 0.3s ease-in-out; }
+
+/* ===== 실행 중 표시 ===== */
+.running-stripes {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.18) 0 8px,
+    transparent 8px 16px
+  );
+  background-size: 200% 100%;
+  animation: stripe-slide 0.8s linear infinite;
+}
+@keyframes stripe-slide {
+  to { background-position: -32px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-grow, .pass-pulse, .shake, .running-stripes { animation: none; }
+}

@@ -1,0 +1,183 @@
+[
+  {
+    "id": "w1-l1-first-circuit",
+    "week": 1,
+    "title": "첫 번째 양자 회로",
+    "subtitle": "큐비트 하나에 게이트 얹기",
+    "goal": "큐비트 1개짜리 회로를 만들고, H 게이트를 얹어 회로 그림을 확인한다.",
+    "concept": [
+      "양자 회로는 '큐비트'라는 선 위에 '게이트'라는 상자를 순서대로 올린 그림이야.",
+      "QuantumCircuit(1)은 큐비트 1개짜리 빈 회로를 만든다는 뜻이야.",
+      "H 게이트는 큐비트를 0도 1도 아닌 '중첩' 상태로 만들어. 동전을 공중에 던진 상태라고 생각하면 돼."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit\n\n# 큐비트 1개짜리 회로를 만든다\nqc = QuantumCircuit(1)\n\n# TODO: 0번 큐비트에 H 게이트를 얹어 보자\n# 힌트: qc.h(큐비트번호)\n\n\n# 회로 그림 출력\nprint(qc.draw())\n",
+    "hints": [
+      "게이트를 얹는 방법은 qc.게이트이름(큐비트번호) 형태야. H 게이트라면 qc.h(0)이 되겠지.",
+      "TODO 아래 빈 줄에 qc.h(0) 이라고 쓰고 실행 버튼을 눌러 봐.",
+      "정답: qc.h(0)"
+    ],
+    "check": {
+      "type": "circuit_contains",
+      "gates": ["H"],
+      "message": "회로 그림에 H 상자가 보이지 않아요. qc.h(0)을 넣었는지 확인해 보세요."
+    },
+    "docs": [
+      { "label": "Qiskit QuantumCircuit 문서", "url": "https://docs.quantum.ibm.com/api/qiskit/qiskit.circuit.QuantumCircuit" }
+    ],
+    "reflection": null
+  },
+  {
+    "id": "w1-l2-measure",
+    "week": 1,
+    "title": "측정해서 결과 보기",
+    "subtitle": "중첩은 재 봐야 알 수 있다",
+    "goal": "H 게이트를 얹은 큐비트를 1024번 측정해서, 0과 1이 반반 나오는 것을 확인한다.",
+    "concept": [
+      "중첩 상태인 큐비트는 '재기(측정) 전까지는' 0인지 1인지 정해져 있지 않아.",
+      "측정하면 0 또는 1 중 하나로 확 정해져. 그래서 한 번만 재면 아무것도 알 수 없어.",
+      "여러 번(shots) 반복해서 재고, 0이 몇 번 1이 몇 번 나왔는지 세어 봐야 중첩이 보여."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\n# 큐비트 1개, 결과를 담을 칸(비트) 1개\nqc = QuantumCircuit(1, 1)\nqc.h(0)\n\n# TODO: 0번 큐비트를 재서 0번 비트에 저장하자\n# 힌트: qc.measure(큐비트번호, 비트번호)\n\n\n# 시뮬레이터에서 1024번 실행\nsim = AerSimulator()\nresult = sim.run(transpile(qc, sim), shots=1024).result()\ncounts = result.get_counts()\n\nprint(counts)\n",
+    "hints": [
+      "measure는 '이 큐비트를 재서 저 비트에 적어 둬'라는 뜻이야. qc.measure(0, 0)처럼 쓴다.",
+      "TODO 아래에 qc.measure(0, 0)을 넣고 실행해 봐.",
+      "실행하면 {'0': 약 500, '1': 약 500} 처럼 나올 거야. 매번 숫자가 조금씩 달라지는 게 정상이야."
+    ],
+    "check": {
+      "type": "counts_balanced",
+      "outcomes": 2,
+      "tolerance": 0.15,
+      "message": "0과 1이 비슷한 비율로 나와야 해요. H 게이트와 measure가 모두 들어갔는지 확인해 보세요."
+    },
+    "docs": [
+      { "label": "AerSimulator 문서", "url": "https://qiskit.github.io/qiskit-aer/stubs/qiskit_aer.AerSimulator.html" }
+    ],
+    "reflection": "측정할 때마다 숫자가 조금씩 달라졌어. 왜 그럴까? 네 생각을 두세 문장으로 써 줘."
+  },
+  {
+    "id": "w1-l3-x-gate",
+    "week": 1,
+    "title": "확실하게 뒤집기",
+    "subtitle": "X 게이트",
+    "goal": "X 게이트만 얹어서 항상 1이 나오는 회로를 만든다.",
+    "concept": [
+      "모든 양자 게이트가 중첩을 만드는 건 아니야.",
+      "X 게이트는 그냥 0을 1로, 1을 0으로 뒤집어. 고전 컴퓨터의 NOT과 같아.",
+      "X만 쓴 회로는 측정하면 언제나 같은 답이 나와. 무작위가 아니야."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(1, 1)\n\n# TODO: 0번 큐비트에 X 게이트를 얹자\n\n\nqc.measure(0, 0)\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
+    "hints": [
+      "H를 썼던 방식과 똑같아. 이름만 바꾸면 돼.",
+      "qc.x(0) 을 TODO 아래에 넣어 봐.",
+      "결과가 {'1': 1024} 하나만 나오면 성공이야."
+    ],
+    "check": {
+      "type": "counts_keys",
+      "keys": ["1"],
+      "message": "1만 나와야 해요. X 게이트 하나만 얹었는지 확인해 보세요."
+    },
+    "docs": [],
+    "reflection": null
+  },
+  {
+    "id": "w2-l4-two-h",
+    "week": 2,
+    "title": "H를 두 번 하면?",
+    "subtitle": "양자 게이트는 되돌릴 수 있다",
+    "goal": "H 게이트를 연달아 두 번 얹고, 결과가 다시 0으로 돌아오는 것을 확인한다.",
+    "concept": [
+      "H를 한 번 하면 반반 중첩이 돼. 그럼 두 번 하면 더 뒤죽박죽이 될까?",
+      "아니야. H를 두 번 하면 원래대로 돌아와. 양자 게이트는 되돌릴 수 있는(reversible) 연산이거든.",
+      "이건 그냥 확률이 섞이는 게 아니라 '파동처럼 겹쳐서 상쇄되기' 때문이야. 이걸 간섭(interference)이라고 해."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(1, 1)\nqc.h(0)\n\n# TODO: H 게이트를 한 번 더 얹어 보자\n\n\nqc.measure(0, 0)\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "hints": [
+      "앞 줄과 똑같은 줄을 하나 더 쓰면 돼.",
+      "qc.h(0) 을 한 번 더 넣어 봐.",
+      "결과가 {'0': 1024}로 나오면 성공. 반반이 아니라 확실하게 0으로 돌아왔지?"
+    ],
+    "check": {
+      "type": "counts_keys",
+      "keys": ["0"],
+      "message": "0만 나와야 해요. H가 정확히 두 번 들어갔는지 확인해 보세요."
+    },
+    "docs": [],
+    "reflection": "H를 두 번 했더니 반반이 아니라 0만 나왔어. 동전 던지기를 두 번 하는 것과 뭐가 다를까?"
+  },
+  {
+    "id": "w2-l5-two-qubits",
+    "week": 2,
+    "title": "큐비트 두 개 다루기",
+    "subtitle": "따로 노는 두 큐비트",
+    "goal": "큐비트 2개에 각각 H를 얹어, 네 가지 결과가 골고루 나오는 것을 확인한다.",
+    "concept": [
+      "큐비트가 2개면 나올 수 있는 결과는 00, 01, 10, 11 네 가지야.",
+      "둘 다 H를 얹으면 네 가지가 각각 약 25%씩 나와.",
+      "지금은 두 큐비트가 서로 아무 상관이 없어. 각자 따로 동전을 던지는 셈이야."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\n# 큐비트 2개, 비트 2개\nqc = QuantumCircuit(2, 2)\n\n# TODO: 0번과 1번 큐비트에 각각 H 게이트를 얹자\n\n\n\n# 두 큐비트를 한 번에 측정하기\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
+    "hints": [
+      "큐비트 번호만 다르게 해서 두 줄 쓰면 돼.",
+      "qc.h(0) 과 qc.h(1) 을 각각 한 줄씩.",
+      "결과에 00, 01, 10, 11 네 가지가 모두 약 25%씩 나오면 성공이야."
+    ],
+    "check": {
+      "type": "counts_balanced",
+      "outcomes": 4,
+      "tolerance": 0.1,
+      "message": "네 가지 결과가 골고루 나와야 해요. 두 큐비트 모두에 H를 얹었는지 확인해 보세요."
+    },
+    "docs": [],
+    "reflection": null
+  },
+  {
+    "id": "w2-l6-bell",
+    "week": 2,
+    "title": "얽힌 두 큐비트",
+    "subtitle": "벨 상태 만들기",
+    "goal": "H와 CX를 조합해, 00과 11만 나오는 얽힘 상태를 만든다.",
+    "concept": [
+      "CX 게이트는 '조종 큐비트가 1이면 표적 큐비트를 뒤집어라'라는 뜻이야.",
+      "H로 중첩을 만든 뒤 CX를 걸면, 두 큐비트가 서로 묶여 버려. 이걸 얽힘(entanglement)이라고 해.",
+      "얽히면 00과 11만 나오고 01, 10은 아예 안 나와. 한쪽을 재는 순간 다른 쪽도 정해지는 거야."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# 1단계: 0번 큐비트를 중첩으로 만든다\nqc.h(0)\n\n# TODO: 2단계 — 0번을 조종, 1번을 표적으로 CX 게이트를 걸자\n# 힌트: qc.cx(조종큐비트, 표적큐비트)\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "hints": [
+      "조종(control)이 앞, 표적(target)이 뒤야.",
+      "qc.cx(0, 1) 을 TODO 아래에 넣어 봐.",
+      "결과에 00과 11만 있고 01, 10이 없으면 성공이야."
+    ],
+    "check": {
+      "type": "counts_keys",
+      "keys": ["00", "11"],
+      "message": "00과 11만 나와야 해요. 01이나 10이 나왔다면 CX가 빠졌을 수 있어요."
+    },
+    "docs": [
+      { "label": "Qiskit 얽힘 튜토리얼", "url": "https://docs.quantum.ibm.com/guides/hello-world" }
+    ],
+    "reflection": "01과 10은 왜 한 번도 안 나왔을까? 두 큐비트 사이에 무슨 일이 일어난 걸까?"
+  },
+  {
+    "id": "w3-l7-explore",
+    "week": 3,
+    "title": "내 회로 만들기",
+    "subtitle": "자유 탐구",
+    "goal": "지금까지 배운 게이트를 자유롭게 조합해서, 내가 예상한 결과가 나오는지 확인한다.",
+    "concept": [
+      "쓸 수 있는 게이트: h(중첩), x(뒤집기), z(위상 뒤집기), cx(얽힘), swap(자리 바꾸기)",
+      "먼저 종이에 '이렇게 하면 이런 결과가 나올 것 같다'를 적어 두고 실행해 봐.",
+      "예상과 다르면 그게 제일 재미있는 순간이야. 왜 달랐는지 적어 두자."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\n# 큐비트 개수는 마음대로 (2~3개를 추천해)\nqc = QuantumCircuit(2, 2)\n\n# TODO: 여기에 원하는 게이트를 얹어 보자\n# qc.h(0)  qc.x(0)  qc.z(0)  qc.cx(0, 1)  qc.swap(0, 1)\n\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "hints": [
+      "실행 전에 결과를 먼저 예상해 보고, 예상을 노트에 적어 둬.",
+      "게이트 순서를 바꾸면 결과가 달라질까? 한 번 확인해 봐.",
+      "X를 먼저 걸고 CX를 걸면 어떻게 될까?"
+    ],
+    "check": { "type": "none" },
+    "docs": [
+      { "label": "Qiskit 게이트 목록", "url": "https://docs.quantum.ibm.com/api/qiskit/circuit_library" }
+    ],
+    "reflection": "네가 만든 회로는 어떤 결과를 냈어? 실행 전 예상과 같았는지, 달랐다면 왜 달랐다고 생각하는지 써 줘."
+  }
+]

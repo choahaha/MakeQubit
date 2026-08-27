@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>MakeQubit — 양자 코딩 실습</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+  <script type="module" src="/src/index.js"></script>
+  <style>body { opacity: 0; } body.ready { opacity: 1; transition: opacity 0.15s; }</style>
+</head>
+<body class="bg-slate-50 font-display text-slate-800 min-h-screen flex flex-col">
+
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+        <span class="material-icons-round text-lg">terminal</span>
+      </div>
+      <h1 class="font-extrabold text-lg tracking-tight">MakeQubit</h1>
+      <span class="text-xs font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full">연구용</span>
+    </div>
+  </header>
+
+  <main class="flex-1 flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-4xl grid md:grid-cols-[minmax(0,1fr)_320px] gap-8 items-start">
+
+      <!-- 소개 + 커리큘럼 -->
+      <section>
+        <h2 class="text-3xl font-extrabold tracking-tight leading-tight">
+          Qiskit 코드로<br/>양자 회로를 직접 만들어 보자
+        </h2>
+        <p class="mt-4 text-slate-500 leading-relaxed">
+          코드를 쓰고 실행 버튼을 누르면 서버의 양자 시뮬레이터가 회로를 돌려서
+          결과를 돌려줘요. 설치할 것도, 준비할 것도 없어요.
+        </p>
+
+        <div class="mt-8">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">3주 커리큘럼</h3>
+          <ol id="curriculum" class="space-y-2"></ol>
+        </div>
+      </section>
+
+      <!-- 입장 카드 -->
+      <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <h3 class="font-bold text-lg">실습 시작하기</h3>
+        <p class="mt-1 text-sm text-slate-500 leading-relaxed">
+          선생님이 알려 준 참여자 코드를 입력하세요.
+        </p>
+
+        <form id="enter-form" class="mt-5 space-y-3">
+          <label class="block">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">참여자 코드</span>
+            <input
+              id="participant-code"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="예: A-07"
+              class="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-3 font-mono text-lg tracking-wider uppercase
+                     focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition"
+            />
+          </label>
+
+          <p id="enter-error" class="hidden text-sm text-accent-red font-medium"></p>
+
+          <button
+            type="submit"
+            id="enter-button"
+            class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl
+                   transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                   flex items-center justify-center gap-2"
+          >
+            <span class="material-icons-round text-lg">login</span>
+            <span>들어가기</span>
+          </button>
+        </form>
+
+        <div class="mt-5 pt-5 border-t border-slate-100">
+          <p class="text-[11px] leading-relaxed text-slate-400">
+            <span class="material-icons-round text-xs align-middle">info</span>
+            이 실습에서는 연구를 위해 <strong class="text-slate-500">작성한 코드와 실행 기록</strong>이 저장돼요.
+            이름이나 학번은 저장하지 않고 참여자 코드만 남아요.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="py-4 text-center text-xs text-slate-400">
+    MakeQubit — Qiskit 기반 양자 코딩 학습 플랫폼
+  </footer>
+
+</body>
+</html>
