@@ -19,6 +19,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         lessons: resolve(__dirname, 'lessons.html'),
         lesson: resolve(__dirname, 'lesson.html'),
+        quiz: resolve(__dirname, 'quiz.html'),
         admin: resolve(__dirname, 'admin.html'),
       },
     },

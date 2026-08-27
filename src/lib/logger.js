@@ -169,6 +169,31 @@ export async function logSubmission({ lessonId, submissionIndex, code, answer, c
   return { saved: false };
 }
 
+/**
+ * 형성평가 응답. 문항 하나마다 바로 보낸다 — 중간에 그만둬도
+ * 거기까지 푼 것은 남아야 한다.
+ */
+export async function logAssessment({
+  week, session, itemId, itemType, picked, correct, msToAnswer,
+}) {
+  const participant = getParticipant();
+  if (!participant || participant.local || !supabase) return;
+
+  const { error } = await supabase.from('assessment_responses').insert({
+    participant_id: participant.id,
+    session_id: getSessionId(),
+    seq: nextSeq(),
+    week,
+    session,
+    item_id: itemId,
+    item_type: itemType,
+    picked,
+    correct,
+    ms_to_answer: msToAnswer,
+  });
+  if (error) console.warn('[logger] assessment insert failed', error.message);
+}
+
 // 탭을 닫거나 다른 앱으로 넘어가도 큐에 남은 이벤트를 잃지 않는다.
 window.addEventListener('pagehide', flushWithBeacon);
 document.addEventListener('visibilitychange', () => {

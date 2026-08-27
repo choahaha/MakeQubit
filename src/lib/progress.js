@@ -49,3 +49,28 @@ export function statusOf(lessonId) {
   if (p.runs) return 'started';
   return 'todo';
 }
+
+/* ===================== 형성평가 ===================== */
+
+const QUIZ_KEY = 'makequbit.quiz';
+
+function readQuiz() {
+  try {
+    return JSON.parse(localStorage.getItem(QUIZ_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+export function getQuizProgress(week, session) {
+  return readQuiz()[`${week}-${session}`] || null;
+}
+
+export function updateQuizProgress(week, session, patch) {
+  const all = readQuiz();
+  const key = `${week}-${session}`;
+  all[key] = { ...(all[key] || {}), ...patch, at: new Date().toISOString() };
+  try {
+    localStorage.setItem(QUIZ_KEY, JSON.stringify(all));
+  } catch { /* 저장 못 해도 실습은 계속돼야 한다 */ }
+}

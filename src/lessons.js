@@ -1,7 +1,8 @@
 import './style.css';
 import lessons from '../data/lessons.json';
 import { getParticipant, clearParticipant } from './lib/session.js';
-import { getAllProgress, statusOf } from './lib/progress.js';
+import { getAllProgress, statusOf, getQuizProgress } from './lib/progress.js';
+import assessments from '../data/assessments.json';
 import { logEvent, flush } from './lib/logger.js';
 
 const participant = getParticipant();
@@ -115,9 +116,63 @@ function renderSessions() {
     for (const { lesson, index } of items) {
       list.appendChild(lessonCard(lesson, index));
     }
+
+    // 차시 끝의 형성평가. 그 차시 레슨을 하나도 안 했으면 잠가 둔다 —
+    // 배우기 전에 풀면 형성평가가 아니라 사전검사가 된다.
+    const quiz = quizCard(Number(week), Number(session), items);
+    if (quiz) list.appendChild(quiz);
+
     block.appendChild(list);
     host.appendChild(block);
   }
+}
+
+function quizCard(week, session, items) {
+  const set = assessments.find((a) => a.week === week && a.session === session);
+  if (!set) return null;
+
+  const result = getQuizProgress(week, session);
+  const started = items.some(({ lesson }) => statusOf(lesson.id) !== 'todo');
+  const href = `/quiz.html?week=${week}&session=${session}`;
+
+  const card = el('a', 'flex items-center gap-4 rounded-xl border px-4 py-3.5 transition group '
+    + (result
+      ? 'bg-white border-green-300 hover:border-primary'
+      : started
+        ? 'bg-primary-soft border-primary/30 hover:border-primary'
+        : 'bg-slate-50 border-dashed border-slate-300'));
+
+  if (started) card.href = href;
+
+  const icon = el('span',
+    `material-icons-round shrink-0 ${
+      result ? 'text-accent-green' : started ? 'text-primary' : 'text-slate-300'}`,
+    result ? 'task_alt' : 'quiz');
+  card.appendChild(icon);
+
+  const body = el('div', 'min-w-0 flex-1');
+  const titleRow = el('div', 'flex items-baseline gap-2 flex-wrap');
+  titleRow.appendChild(el('span', 'font-bold', `형성평가 · ${set.title}`));
+  if (result) {
+    titleRow.appendChild(el('span',
+      'text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-100 text-green-700',
+      `${result.score}/${result.total}`));
+  }
+  body.appendChild(titleRow);
+  body.appendChild(el('p', 'text-sm text-slate-500',
+    started
+      ? `회로 이해 · 결과 예측 · 오류 수정 ${set.items.length}문제`
+      : '이 차시 레슨을 하나라도 해 보면 열려'));
+  card.appendChild(body);
+
+  if (started) {
+    card.appendChild(el('span',
+      'material-icons-round text-slate-300 group-hover:text-primary transition shrink-0',
+      'chevron_right'));
+  } else {
+    card.appendChild(el('span', 'material-icons-round text-slate-300 shrink-0', 'lock'));
+  }
+  return card;
 }
 
 function lessonCard(lesson, index) {

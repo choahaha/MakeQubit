@@ -422,12 +422,18 @@ function errorDetail(error) {
 
 /* ===================== 제출 ===================== */
 
-const DEFAULT_PROMPT = '이 코드가 어떻게 동작하는지 짧게 써 줘. 왜 이렇게 했는지도 좋아.';
-
 function openSubmit() {
   const modal = document.getElementById('submit-modal');
-  document.getElementById('submit-prompt').textContent =
-    lesson.reflection || DEFAULT_PROMPT;
+
+  // 레슨에 구체적인 질문이 있을 때만 서술칸을 띄운다. '어떻게 동작하는지
+  // 써 줘' 같은 두루뭉술한 질문은 학생이 무엇을 쓸지 모르고, 연구 쪽에서도
+  // 채점이 안 된다. 그 자리는 차시별 형성평가가 대신한다.
+  const prompt = document.getElementById('submit-prompt');
+  const answer = document.getElementById('submit-answer');
+  const hasQuestion = Boolean(lesson.reflection);
+  prompt.textContent = lesson.reflection || '';
+  prompt.classList.toggle('hidden', !hasQuestion);
+  answer.classList.toggle('hidden', !hasQuestion);
 
   // 지금 어떤 상태로 내는지 보여준다. 못 푼 채 내는 것도 선택지다.
   const chips = [
@@ -445,7 +451,7 @@ function openSubmit() {
     .join('');
 
   modal.classList.remove('hidden');
-  document.getElementById('submit-answer').focus();
+  if (hasQuestion) answer.focus();
   logEvent('submit_opened', {
     run_index: runIndex, passed, hints_shown: hintsShown,
   }, lesson.id);
@@ -533,17 +539,19 @@ function renderSessionEnd() {
     <span class="material-icons-round text-primary">flag</span>
     <div class="min-w-0 flex-1">
       <p class="text-sm font-bold">${lesson.week}주차 ${lesson.session}차시 끝!</p>
-      <p class="text-xs text-slate-600 mt-0.5">여기까지가 이번 시간 분량이야.</p>
+      <p class="text-xs text-slate-600 mt-0.5">배운 걸 확인하는 문제가 세 개 있어.</p>
     </div>`;
+  const quizUrl = `/quiz.html?week=${lesson.week}&session=${lesson.session}`;
   const link = document.createElement('a');
-  link.href = '/lessons.html';
+  link.href = quizUrl;
   link.className =
     'shrink-0 bg-primary hover:bg-primary-dark text-white font-bold text-xs px-3 py-2 rounded-lg transition-colors';
-  link.textContent = '목차로';
-  link.addEventListener('click', (event) => {
+  link.textContent = '형성평가 풀기';
+  link.addEventListener('click', async (event) => {
     event.preventDefault();
     logEvent('session_complete', { week: lesson.week, session: lesson.session }, lesson.id);
-    goToIndex();
+    await flush();
+    window.location.href = quizUrl;
   });
   box.appendChild(link);
 
