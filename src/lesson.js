@@ -435,8 +435,22 @@ function openSubmit() {
   prompt.classList.toggle('hidden', !hasQuestion);
   answer.classList.toggle('hidden', !hasQuestion);
 
-  // 지금 어떤 상태로 내는지 보여준다. 못 푼 채 내는 것도 선택지다.
-  const chips = [
+  document.getElementById('submit-summary').innerHTML = summaryChips();
+
+  // 다시 열면 확인 화면부터. 앞선 제출의 완료 화면이 남아 있으면 안 된다.
+  document.getElementById('submit-ask').classList.remove('hidden');
+  document.getElementById('submit-done').classList.add('hidden');
+
+  modal.classList.remove('hidden');
+  if (hasQuestion) answer.focus();
+  logEvent('submit_opened', {
+    run_index: runIndex, passed, hints_shown: hintsShown,
+  }, lesson.id);
+}
+
+/** 지금 어떤 상태로 내는지. 못 푼 채 내는 것도 선택지다. */
+function summaryChips() {
+  return [
     [`실행 ${runIndex}회`, 'bg-slate-100 text-slate-600'],
     [`힌트 ${hintsShown}개`, hintsShown
       ? 'bg-secondary-soft text-secondary'
@@ -444,17 +458,9 @@ function openSubmit() {
     [passed ? '목표 달성' : '아직 목표 미달성', passed
       ? 'bg-green-100 text-green-700'
       : 'bg-slate-100 text-slate-600'],
-  ];
-  document.getElementById('submit-summary').innerHTML = chips
-    .map(([text, cls]) =>
-      `<span class="text-[11px] font-bold px-2 py-1 rounded-full ${cls}">${text}</span>`)
-    .join('');
-
-  modal.classList.remove('hidden');
-  if (hasQuestion) answer.focus();
-  logEvent('submit_opened', {
-    run_index: runIndex, passed, hints_shown: hintsShown,
-  }, lesson.id);
+  ].map(([text, cls]) =>
+    `<span class="text-[11px] font-bold px-2 py-1 rounded-full ${cls}">${text}</span>`
+  ).join('');
 }
 
 function closeSubmit() {
@@ -496,17 +502,52 @@ async function confirmSubmit() {
   if (passed) {
     renderStatus('pass', '목표 달성!', '이미 제출했어. 더 고쳐서 다시 제출해도 돼.');
   }
-  closeSubmit();
-  revealSolution();
+  showSubmitDone();
+  revealSolution();   // 왼쪽 패널에도 열어 둔다 (다시 방문했을 때 참조용)
   updateSubmitButton();
   renderSessionEnd();
 }
 
 /**
- * 제출 후에만 해설을 연다. 그 전에 보이면 문제해결 과정이 사라진다.
- * @param {boolean} revealedByAction 방금 제출해서 열렸는가 (재방문이면 false)
+ * 제출 직후에 보여줄 것.
+ *
+ * 예전에는 모달을 닫아 버렸다. 그러면 확인 신호가 없고, 제출의 보상인 해설이
+ * 왼쪽 구석에서 조용히 열려 학생 눈에 안 들어왔다. 시선이 이미 모달에 있으니
+ * 거기서 결과를 보여준다.
  */
-function revealSolution(revealedByAction = true) {
+function showSubmitDone() {
+  document.getElementById('submit-ask').classList.add('hidden');
+  document.getElementById('done-summary').innerHTML = summaryChips();
+
+  const code = document.getElementById('done-code');
+  if (lesson.solution?.code) {
+    code.textContent = lesson.solution.code;
+    code.classList.remove('hidden');
+  } else {
+    code.classList.add('hidden');
+  }
+  document.getElementById('done-text').textContent = lesson.solution?.explanation || '';
+
+  // 차시의 마지막이면 다음 레슨이 아니라 형성평가로 보낸다.
+  document.getElementById('done-next-label').textContent =
+    isSessionEnd ? '형성평가 풀기' : '다음 레슨';
+
+  document.getElementById('submit-done').classList.remove('hidden');
+  logEvent('solution_viewed', { submission_index: submissionIndex }, lesson.id);
+}
+
+async function goNextFromDone() {
+  if (isSessionEnd) {
+    logEvent('session_complete', { week: lesson.week, session: lesson.session }, lesson.id);
+    await flush();
+    window.location.href = `/quiz.html?week=${lesson.week}&session=${lesson.session}`;
+    return;
+  }
+  goToSession(sessionIndex + 1);
+}
+
+/** 제출 후에만 해설을 연다. 그 전에 보이면 문제해결 과정이 사라진다. */
+function revealSolution() {
   const block = document.getElementById('solution-block');
   if (!block.classList.contains('hidden')) return;
 
@@ -516,11 +557,9 @@ function revealSolution(revealedByAction = true) {
     codeEl.classList.remove('hidden');
   }
   document.getElementById('solution-text').textContent = lesson.solution?.explanation || '';
+  // 스크롤하지 않는다. 왼쪽 패널을 밀어 올리면 '이번에 할 일'이 화면 밖으로
+  // 나가 맥락을 잃는다. 해설은 제출 완료 화면에서 이미 보여줬다.
   block.classList.remove('hidden');
-  if (revealedByAction) {
-    block.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    logEvent('solution_viewed', { submission_index: submissionIndex }, lesson.id);
-  }
 }
 
 /**
@@ -638,6 +677,11 @@ function bindControls() {
     closeSubmit();
   });
   document.getElementById('submit-confirm').addEventListener('click', confirmSubmit);
+  document.getElementById('done-keep').addEventListener('click', () => {
+    logEvent('submit_done_keep', { submission_index: submissionIndex }, lesson.id);
+    closeSubmit();
+  });
+  document.getElementById('done-next').addEventListener('click', goNextFromDone);
 
   window.addEventListener('keydown', (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
@@ -662,7 +706,7 @@ renderLessonInfo();
 renderProgressDots();
 if (submitted) {
   // 이미 제출한 레슨을 다시 열었다. 해설은 이미 본 것이므로 계속 열어 둔다.
-  revealSolution(false);
+  revealSolution();
   updateSubmitButton();
   renderSessionEnd();
 }

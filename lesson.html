@@ -188,31 +188,68 @@
 
   <!-- ===== 제출 모달 ===== -->
   <div id="submit-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
-      <h2 class="font-bold text-lg">이 코드를 제출할까?</h2>
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[88vh] overflow-y-auto">
 
-      <div id="submit-summary" class="mt-3 flex flex-wrap gap-1.5"></div>
+      <!-- 1단계: 확인 -->
+      <div id="submit-ask" class="p-6">
+        <h2 class="font-bold text-lg">이 코드를 제출할까?</h2>
 
-      <p id="submit-prompt" class="mt-4 text-sm leading-relaxed text-slate-600"></p>
-      <textarea id="submit-answer" rows="4"
-        class="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm leading-relaxed
-               focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition resize-none"
-        placeholder="여기에 자유롭게 써 줘"></textarea>
+        <div id="submit-summary" class="mt-3 flex flex-wrap gap-1.5"></div>
 
-      <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
-        제출해도 코드는 계속 고칠 수 있어. 다시 제출하면 새 답으로 저장돼.
-      </p>
+        <p id="submit-prompt" class="mt-4 text-sm leading-relaxed text-slate-600"></p>
+        <textarea id="submit-answer" rows="4"
+          class="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm leading-relaxed
+                 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition resize-none"
+          placeholder="여기에 자유롭게 써 줘"></textarea>
 
-      <div class="mt-4 flex gap-2">
-        <button id="submit-cancel"
-          class="flex-1 text-sm font-bold text-slate-500 hover:text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 transition">
-          아니오
-        </button>
-        <button id="submit-confirm"
-          class="flex-1 bg-primary hover:bg-primary-dark text-white font-bold text-sm py-2.5 rounded-xl transition-colors">
-          제출하기
-        </button>
+        <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
+          제출해도 코드는 계속 고칠 수 있어. 다시 제출하면 새 답으로 저장돼.
+        </p>
+
+        <div class="mt-4 flex gap-2">
+          <button id="submit-cancel"
+            class="flex-1 text-sm font-bold text-slate-500 hover:text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 transition">
+            아니오
+          </button>
+          <button id="submit-confirm"
+            class="flex-1 bg-primary hover:bg-primary-dark text-white font-bold text-sm py-2.5 rounded-xl transition-colors">
+            제출하기
+          </button>
+        </div>
       </div>
+
+      <!-- 2단계: 제출 완료 + 해설 -->
+      <div id="submit-done" class="hidden p-6">
+        <div class="flex items-center gap-2.5">
+          <span class="material-icons-round text-accent-green text-2xl">check_circle</span>
+          <h2 class="font-bold text-lg">제출했어!</h2>
+        </div>
+        <div id="done-summary" class="mt-3 flex flex-wrap gap-1.5"></div>
+
+        <div class="mt-5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-primary mb-2">해설</h3>
+          <div class="bg-primary-soft border border-primary/20 rounded-xl p-3.5 space-y-2.5">
+            <pre id="done-code"
+                 class="hidden text-[12.5px] leading-relaxed font-code text-slate-800
+                        bg-white/70 rounded-lg px-3 py-2 overflow-x-auto"></pre>
+            <p id="done-text" class="text-sm leading-relaxed text-slate-700"></p>
+          </div>
+        </div>
+
+        <div class="mt-5 flex gap-2">
+          <button id="done-keep"
+            class="flex-1 text-sm font-bold text-slate-500 hover:text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 transition">
+            계속 고치기
+          </button>
+          <button id="done-next"
+            class="flex-1 bg-primary hover:bg-primary-dark text-white font-bold text-sm py-2.5 rounded-xl
+                   transition-colors flex items-center justify-center gap-1.5">
+            <span id="done-next-label">다음 레슨</span>
+            <span class="material-icons-round text-base">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
