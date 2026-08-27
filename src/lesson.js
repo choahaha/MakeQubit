@@ -132,8 +132,11 @@ function showNextHint() {
   hintsShown += 1;
 
   const card = document.createElement('div');
-  card.className = 'bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-sm leading-relaxed text-amber-900';
-  card.innerHTML = `<span class="font-bold text-xs text-amber-600 block mb-0.5">힌트 ${hintsShown}</span>`;
+  card.className =
+    'bg-secondary-soft border border-secondary/25 rounded-xl px-3 py-2.5 '
+    + 'text-sm leading-relaxed text-slate-700';
+  card.innerHTML =
+    `<span class="font-bold text-xs text-secondary block mb-0.5">힌트 ${hintsShown}</span>`;
   card.appendChild(document.createTextNode(text));
   document.getElementById('hint-list').appendChild(card);
 
