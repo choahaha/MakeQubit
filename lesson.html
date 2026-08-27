@@ -46,21 +46,22 @@
   <main class="flex-1 flex overflow-hidden">
 
     <!-- LEFT: 레슨 안내 -->
-    <aside class="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto">
+    <!-- 편집기가 주 작업 공간이다. 화면이 좁아지면 안내/결과 패널이 먼저 양보한다. -->
+    <aside class="w-60 xl:w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto">
       <div class="p-5 space-y-5">
 
         <div>
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">이번에 할 일</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">이번에 할 일</h2>
           <p id="lesson-goal" class="text-sm leading-relaxed font-medium"></p>
         </div>
 
         <div>
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">알아 두기</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">알아 두기</h2>
           <ul id="lesson-concept" class="space-y-2.5 text-sm leading-relaxed text-slate-600"></ul>
         </div>
 
         <div>
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">막혔을 때</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">막혔을 때</h2>
           <div id="hint-list" class="space-y-2"></div>
           <button id="btn-hint"
             class="mt-2 w-full text-sm font-bold text-primary border border-primary/25 bg-primary-soft
@@ -71,7 +72,7 @@
         </div>
 
         <div id="docs-block" class="hidden">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">더 찾아보기</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">더 찾아보기</h2>
           <ul id="docs-list" class="space-y-1.5"></ul>
         </div>
 
@@ -79,16 +80,16 @@
     </aside>
 
     <!-- CENTER: 편집기 -->
-    <section class="flex-1 flex flex-col min-w-0 bg-white border-r border-slate-200">
+    <section class="flex-1 flex flex-col min-w-0 basis-[520px] bg-white border-r border-slate-200">
       <div class="h-11 border-b border-slate-200 flex items-center justify-between px-4 shrink-0">
         <div class="flex items-center gap-2">
-          <span class="material-icons-round text-base text-slate-400">code</span>
+          <span class="material-icons-round text-base text-slate-500">code</span>
           <span class="text-xs font-bold text-slate-500">main.py</span>
-          <span id="run-counter" class="text-[11px] font-mono text-slate-300"></span>
+          <span id="run-counter" class="text-[11px] font-mono text-slate-400"></span>
         </div>
         <div class="flex items-center gap-1">
           <button id="btn-reset"
-            class="text-xs font-bold text-slate-400 hover:text-accent-red transition flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-50">
+            class="text-xs font-bold text-slate-500 hover:text-accent-red transition flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-50">
             <span class="material-icons-round text-sm">restart_alt</span>
             처음 코드로
           </button>
@@ -98,7 +99,7 @@
       <div id="editor-host" class="flex-1 overflow-hidden"></div>
 
       <div class="h-16 border-t border-slate-200 flex items-center justify-between px-4 shrink-0 bg-slate-50/60">
-        <p id="run-status" class="text-xs text-slate-400 font-mono"></p>
+        <p id="run-status" class="text-xs text-slate-500 font-mono"></p>
         <button id="btn-run"
           class="bg-primary hover:bg-primary-dark text-white font-bold text-sm px-6 py-2.5 rounded-xl
                  transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-wait shadow-sm">
@@ -110,7 +111,7 @@
     </section>
 
     <!-- RIGHT: 결과 -->
-    <aside class="w-96 bg-slate-50 border-l border-slate-200 flex flex-col shrink-0 overflow-y-auto">
+    <aside class="w-72 xl:w-96 bg-slate-50 border-l border-slate-200 flex flex-col shrink-0 overflow-y-auto">
       <div class="p-5 space-y-4">
 
         <!-- 상태 배지 -->
@@ -124,8 +125,8 @@
 
         <!-- 비었을 때 -->
         <div id="result-empty" class="text-center py-16">
-          <span class="material-icons-round text-4xl text-slate-300">science</span>
-          <p class="mt-3 text-sm text-slate-400 leading-relaxed">
+          <span class="material-icons-round text-4xl text-slate-400">science</span>
+          <p class="mt-3 text-sm text-slate-500 leading-relaxed">
             코드를 쓰고 <strong class="text-slate-500">실행하기</strong>를 누르면<br/>결과가 여기에 나와요.
           </p>
         </div>
@@ -133,21 +134,21 @@
         <!-- 측정 결과 히스토그램 -->
         <div id="counts-block" class="hidden bg-white rounded-2xl border border-slate-200 p-4">
           <div class="flex items-baseline justify-between mb-3">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">측정 결과</h2>
-            <span id="counts-total" class="text-[11px] font-mono text-slate-400"></span>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">측정 결과</h2>
+            <span id="counts-total" class="text-[11px] font-mono text-slate-500"></span>
           </div>
           <div id="counts-chart" class="space-y-2"></div>
         </div>
 
         <!-- 출력 -->
         <div id="stdout-block" class="hidden bg-white rounded-2xl border border-slate-200 p-4">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">출력</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">출력</h2>
           <pre id="stdout-text" class="text-xs leading-relaxed font-code text-slate-700 whitespace-pre-wrap break-words max-h-72 overflow-y-auto"></pre>
         </div>
 
         <!-- 회로 그림 -->
         <div id="circuit-block" class="hidden bg-white rounded-2xl border border-slate-200 p-4">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">회로</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">회로</h2>
           <div id="circuit-view" class="overflow-x-auto"></div>
         </div>
 
@@ -169,7 +170,7 @@
                focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition resize-none"
         placeholder="여기에 자유롭게 써 줘"></textarea>
       <div class="mt-4 flex gap-2">
-        <button id="reflection-skip" class="flex-1 text-sm font-bold text-slate-400 hover:text-slate-600 py-2.5 rounded-xl hover:bg-slate-50 transition">
+        <button id="reflection-skip" class="flex-1 text-sm font-bold text-slate-500 hover:text-slate-600 py-2.5 rounded-xl hover:bg-slate-50 transition">
           건너뛰기
         </button>
         <button id="reflection-submit" class="flex-1 bg-primary hover:bg-primary-dark text-white font-bold text-sm py-2.5 rounded-xl transition-colors">

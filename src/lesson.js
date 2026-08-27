@@ -178,7 +178,7 @@ function renderCounts(counts) {
     row.innerHTML = `
       <div class="flex items-baseline justify-between text-[11px] font-code mb-1">
         <span class="font-bold text-slate-700">|${bits}⟩</span>
-        <span class="text-slate-400">${count} · ${percent}%</span>
+        <span class="text-slate-500">${count} · ${percent}%</span>
       </div>
       <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
         <div class="h-full bg-primary rounded-full origin-left bar-grow"
@@ -216,7 +216,7 @@ function renderResult(result) {
     circuitHost.appendChild(renderCircuitSvg(result.circuit_spec));
     if (result.circuit_spec.truncated) {
       const note = document.createElement('p');
-      note.className = 'mt-2 text-[11px] text-slate-400';
+      note.className = 'mt-2 text-[11px] text-slate-500';
       note.textContent = '회로가 길어서 앞부분만 그렸어요.';
       circuitHost.appendChild(note);
     }

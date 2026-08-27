@@ -25,7 +25,7 @@ function renderCurriculum() {
     item.innerHTML = `
       <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 translate-y-[-2px]"></span>
       <span class="font-medium">${lesson.title}</span>
-      <span class="text-slate-400 text-xs">${lesson.subtitle}</span>`;
+      <span class="text-slate-500 text-xs">${lesson.subtitle}</span>`;
     list.appendChild(item);
   }
 }
