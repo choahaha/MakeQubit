@@ -28,14 +28,28 @@ export function clearParticipant() {
 }
 
 /**
- * 참여자 코드로 입장한다. 없으면 새로 만든다.
- * Supabase가 설정되지 않은 경우에도 로컬 전용 참여자로 계속 진행한다.
+ * 입력을 정규화한다. 학생은 'q07', 'Q-07', 'Q 07'을 다 친다 — 전부 'Q07'로 본다.
+ * 하이픈과 공백을 지우는 이유는 관대해서가 아니라, 같은 학생이 같은 코드로
+ * 들어오게 만들기 위해서다.
  */
-export async function enterWithCode(code, { cohort = null } = {}) {
-  const normalized = code.trim().toUpperCase();
+function normalizeCode(raw) {
+  return raw.trim().toUpperCase().replace(/[\s-]/g, '');
+}
+
+/**
+ * 참여자 코드로 입장한다.
+ *
+ * 명부에 없는 코드는 거부한다. 새로 만들지 않는다 — 오타 하나가 새 참여자를
+ * 만들면 그 학생의 3주 기록이 조용히 둘로 쪼개지고, 분석 단계에서야 알게 된다.
+ * 명부는 backend/sql/003_seed_participants.sql로 미리 넣는다.
+ *
+ * Supabase가 설정되지 않은 경우에만 로컬 전용 참여자로 진행한다 (개발용).
+ */
+export async function enterWithCode(code) {
+  const normalized = normalizeCode(code);
   if (!normalized) throw new Error('참여자 코드를 입력해 주세요.');
-  if (!/^[A-Z0-9-]{2,24}$/.test(normalized)) {
-    throw new Error('참여자 코드는 영문/숫자/하이픈 2~24자여야 해요.');
+  if (!/^[A-Z0-9]{2,12}$/.test(normalized)) {
+    throw new Error('참여자 코드는 영문과 숫자로만 이루어져 있어요. 예: Q07');
   }
 
   if (!supabase) {
@@ -44,22 +58,15 @@ export async function enterWithCode(code, { cohort = null } = {}) {
     return participant;
   }
 
-  const { data: existing, error: selectError } = await supabase
+  const { data: row, error } = await supabase
     .from('participants')
     .select('id, participant_code')
     .eq('participant_code', normalized)
     .maybeSingle();
-  if (selectError) throw new Error(`서버 연결에 실패했어요: ${selectError.message}`);
 
-  let row = existing;
+  if (error) throw new Error(`서버에 연결하지 못했어요: ${error.message}`);
   if (!row) {
-    const { data: created, error: insertError } = await supabase
-      .from('participants')
-      .insert({ participant_code: normalized, cohort })
-      .select('id, participant_code')
-      .single();
-    if (insertError) throw new Error(`참여자 등록에 실패했어요: ${insertError.message}`);
-    row = created;
+    throw new Error(`'${normalized}'는 명부에 없는 코드예요. 선생님께 확인해 주세요.`);
   }
 
   const participant = { id: row.id, code: row.participant_code };

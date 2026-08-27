@@ -43,8 +43,15 @@ Supabase 키가 비어 있으면 로깅만 꺼지고 실습은 그대로 동작�
 
 ## DB 준비
 
-Supabase Dashboard → SQL Editor에서 `backend/sql/001_init.sql`, 이어서
-`002_analysis_views.sql`을 실행한다.
+Supabase Dashboard → SQL Editor에서 순서대로 실행한다:
+
+1. `backend/sql/001_init.sql` — 테이블과 RLS
+2. `backend/sql/002_analysis_views.sql` — 연구 분석용 뷰
+3. `backend/sql/003_seed_participants.sql` — 참여자 명부 (Q01~Q20)
+
+**참여자는 명부에만 있다.** 명부에 없는 코드로는 입장할 수 없고, 학생이 코드를
+잘못 쳐도 새 참여자가 생기지 않는다. 오타 하나로 한 학생의 3주 기록이 둘로
+쪼개지는 것을 막기 위해서다. 인원이 다르면 `003`의 목록을 고쳐서 실행한다.
 
 RLS는 브라우저(anon 키)에 **insert만** 허용한다. 학생이 남의 로그를 읽거나 자기 로그를
 지울 수 없다. 연구자는 Dashboard 또는 service_role 키로만 읽는다.
@@ -53,7 +60,7 @@ RLS는 브라우저(anon 키)에 **insert만** 허용한다. 학생이 남의 �
 
 | 테이블 | 내용 |
 |---|---|
-| `participants` | 참여자 코드 (실명·학번 없음) |
+| `participants` | 참여자 코드 (실명·학번 없음). 사전 등록된 명부만 존재 |
 | `learning_events` | lesson_open, code_edit, paste, run_click, run_result, hint_open, check_result, reset_code, lesson_leave |
 | `code_runs` | 실행할 때마다의 **코드 전문**, 상태, 오류 유형/줄, 출력, counts, 실행 시간 |
 | `reflections` | 레슨 종료 시 짧은 자기보고 |

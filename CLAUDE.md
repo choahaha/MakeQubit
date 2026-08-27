@@ -11,7 +11,11 @@
   `logEvent()`를 거치지 않고 직접 insert하지 말 것. 순서 복원이 깨진다.
 - **`code_runs`는 실행 때마다 코드 전문을 남긴다.** 용량을 아끼려고 diff로 바꾸지 말 것.
   분석 단계에서 전문이 필요하다.
-- **RLS는 insert-only.** 브라우저에서 select/update/delete를 열지 말 것.
+- **RLS는 insert-only.** 브라우저에서 update/delete를 열지 말 것.
+  `participants`의 select만 예외다 (코드로 자기 id를 찾아야 함).
+- **참여자는 명부(`003_seed_participants.sql`)로만 생긴다.** `enterWithCode()`가
+  없는 코드를 자동 생성하도록 되돌리지 말 것. 오타가 새 참여자를 만들면 한 학생의
+  기록이 둘로 쪼개지고, 분석할 때가 되어서야 알게 된다.
 - **자동 채점은 실행 결과만 본다** (`src/lib/check.js`). 코드 문자열 정규식 매칭을
   추가하지 말 것 — 같은 회로를 여러 방식으로 쓸 수 있고, 그걸 오답 처리하면
   데이터가 오염된다.
