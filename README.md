@@ -48,7 +48,24 @@ Supabase Dashboard → SQL Editor에서 순서대로 실행한다:
 1. `backend/sql/001_init.sql` — 테이블과 RLS
 2. `backend/sql/002_analysis_views.sql` — 연구 분석용 뷰
 3. `backend/sql/003_seed_participants.sql` — 참여자 명부 (Q01~Q20)
-4. `backend/sql/004_lock_analysis_views.sql` — 분석 뷰를 브라우저로부터 잠금
+4. `backend/sql/004_lock_analysis_views.sql` — 분석 뷰 잠금 (이미 배포된 DB 보수용)
+5. `backend/sql/005_nonstudent_participants.sql` — `Q00`(점검용) · `T00`(교사용) + 테스트 데이터 정리
+
+`004`, `005`는 `001`~`003`을 이미 돌린 DB를 보수하기 위한 것이다. 새 DB라면
+`001`~`003`만 돌려도 같은 상태가 된다 (`002`에 잠금과 필터가 들어 있다).
+
+**학생이 아닌 코드가 둘 있다.**
+
+| 코드 | 용도 |
+|---|---|
+| `Q00` | 개발·점검용. 배포 후 스모크 테스트, 수업 전 동작 확인 |
+| `T00` | 교사용. 수업 전 레슨을 직접 따라가 보거나 수업 중 시연 |
+
+둘 다 `is_test = true`라 분석 뷰가 자동으로 걸러낸다. 이 코드로 들어가면 화면
+상단 칩이 주황색으로 바뀌고 용도가 표시되므로, 점검·시연 세션을 실제 수업으로
+착각할 일이 없다. 이 기록만 따로 보려면 `v_test_runs`를 조회한다.
+
+`T00`은 학생과 같은 화면을 쓴다. 교사 전용 기능(학생 진행 조회 등)은 없다.
 
 **뷰는 RLS를 우회한다.** PostgreSQL 뷰의 기본값(`security_invoker = off`)은 뷰
 소유자 권한으로 실행되므로, 잠그지 않으면 학생이 anon 키로 `v_paste_events`를

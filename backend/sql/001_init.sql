@@ -15,6 +15,7 @@ create table if not exists public.participants (
   participant_code text unique not null,   -- 예: 'A-07'. 실명 금지.
   group_label text,                        -- 실험/대조 등 연구 설계상의 집단
   cohort text,                             -- 예: '2026-1학기-3반'
+  is_test boolean not null default false,  -- 개발·점검용 참여자(Q00). 분석 뷰에서 제외된다
   created_at timestamptz not null default now()
 );
 

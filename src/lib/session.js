@@ -71,9 +71,11 @@ export async function enterWithCode(code) {
   // maybeSingle()을 쓰지 않는다. 그쪽은 '테이블이 없음'과 '해당 코드 없음'을
   // 똑같이 0행으로 삼켜 버려서, 수업 당일 SQL을 안 돌렸을 때 학생 화면에
   // "명부에 없는 코드"가 뜨고 교사가 엉뚱한 곳을 뒤지게 된다.
+  // select('*')를 쓰는 이유: is_test 컬럼은 나중에 추가된 것이라, 컬럼명을
+  // 명시하면 마이그레이션 전 DB에서 입장 자체가 깨진다. '*'는 양쪽에서 동작한다.
   const { data: rows, error } = await supabase
     .from('participants')
-    .select('id, participant_code')
+    .select('*')
     .eq('participant_code', normalized)
     .limit(1);
 
@@ -86,7 +88,12 @@ export async function enterWithCode(code) {
     throw new Error(`'${normalized}'는 명부에 없는 코드예요. 선생님께 확인해 주세요.`);
   }
 
-  const participant = { id: rows[0].id, code: rows[0].participant_code };
+  const participant = {
+    id: rows[0].id,
+    code: rows[0].participant_code,
+    isTest: rows[0].is_test === true,
+    purpose: rows[0].cohort || null,
+  };
   localStorage.setItem(PARTICIPANT_KEY, JSON.stringify(participant));
   return participant;
 }

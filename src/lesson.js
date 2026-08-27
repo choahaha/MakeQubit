@@ -52,7 +52,14 @@ function renderLessonInfo() {
   document.getElementById('lesson-week').textContent = `${lesson.week}주차`;
   document.getElementById('lesson-title').textContent = lesson.title;
   document.getElementById('lesson-goal').textContent = lesson.goal;
-  document.getElementById('participant-chip').textContent = participant.code;
+  const chip = document.getElementById('participant-chip');
+  chip.textContent = participant.code;
+  if (participant.isTest) {
+    // 학생이 아닌 세션임을 숨기지 않는다. 이 기록은 분석 뷰에서 빠진다.
+    chip.textContent = `${participant.code} · ${participant.purpose || '테스트'}`;
+    chip.className =
+      'ml-2 text-xs font-mono bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full';
+  }
 
   const conceptList = document.getElementById('lesson-concept');
   for (const line of lesson.concept) {
