@@ -398,9 +398,10 @@ async function submitReflection() {
 
 /* ===================== 이동 ===================== */
 
-function goTo(index) {
+async function goTo(index) {
   if (index < 0 || index >= lessons.length) return;
-  flush();
+  // 보내고 나서 이동한다. 이동부터 하면 진행 중이던 요청이 취소된다.
+  await flush();
   window.location.href = `/lesson.html?id=${lessons[index].id}`;
 }
 

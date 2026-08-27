@@ -48,6 +48,12 @@ Supabase Dashboard → SQL Editor에서 순서대로 실행한다:
 1. `backend/sql/001_init.sql` — 테이블과 RLS
 2. `backend/sql/002_analysis_views.sql` — 연구 분석용 뷰
 3. `backend/sql/003_seed_participants.sql` — 참여자 명부 (Q01~Q20)
+4. `backend/sql/004_lock_analysis_views.sql` — 분석 뷰를 브라우저로부터 잠금
+
+**뷰는 RLS를 우회한다.** PostgreSQL 뷰의 기본값(`security_invoker = off`)은 뷰
+소유자 권한으로 실행되므로, 잠그지 않으면 학생이 anon 키로 `v_paste_events`를
+읽어 반 전체의 붙여넣기 기록을 볼 수 있다. `002`에 잠금 구문이 포함되어 있고,
+`004`는 이미 배포된 DB를 고치기 위한 것이다.
 
 **참여자는 명부에만 있다.** 명부에 없는 코드로는 입장할 수 없고, 학생이 코드를
 잘못 쳐도 새 참여자가 생기지 않는다. 오타 하나로 한 학생의 3주 기록이 둘로

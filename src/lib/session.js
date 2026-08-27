@@ -17,7 +17,17 @@ export function getSessionId() {
 export function getParticipant() {
   try {
     const raw = localStorage.getItem(PARTICIPANT_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const participant = JSON.parse(raw);
+
+    // Supabase 없이 만든 로컬 전용 참여자(무작위 UUID)가 남아 있으면 버린다.
+    // 그대로 두면 키를 넣은 뒤에도 그 UUID로 insert를 시도해 모든 로깅이
+    // 외래키 위반으로 실패한다 — 화면은 멀쩡한데 데이터만 안 쌓인다.
+    if (participant?.local && supabase) {
+      localStorage.removeItem(PARTICIPANT_KEY);
+      return null;
+    }
+    return participant;
   } catch {
     return null;
   }

@@ -1,6 +1,9 @@
 -- ============================================================
 -- 연구 분석용 뷰 — service_role(또는 Dashboard)로만 조회
 -- 001_init.sql 실행 후에 실행할 것
+--
+-- 【중요】 뷰는 기본적으로 RLS를 우회한다(security_invoker = off).
+-- 파일 끝의 잠금 구문을 빼먹으면 학생이 anon 키로 반 전체 데이터를 읽을 수 있다.
 -- ============================================================
 
 -- 참여자별·레슨별 요약: 실행 횟수, 오류율, 첫 성공까지 걸린 실행 수
@@ -62,3 +65,16 @@ from public.learning_events e
 join public.participants p on p.id = e.participant_id
 where e.event_type = 'paste'
 order by e.client_ts;
+
+
+-- ===== 브라우저로부터 잠그기 =====
+-- 이 블록을 빼면 anon 키로 반 전체의 붙여넣기 기록까지 읽힌다.
+alter view public.v_run_summary  set (security_invoker = on);
+alter view public.v_error_types  set (security_invoker = on);
+alter view public.v_run_deltas   set (security_invoker = on);
+alter view public.v_paste_events set (security_invoker = on);
+
+revoke all on public.v_run_summary  from anon, authenticated;
+revoke all on public.v_error_types  from anon, authenticated;
+revoke all on public.v_run_deltas   from anon, authenticated;
+revoke all on public.v_paste_events from anon, authenticated;
