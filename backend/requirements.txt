@@ -1,5 +1,5 @@
-qiskit>=2.0
-qiskit-aer>=0.15
+qiskit>=2.1
+qiskit-aer>=0.17
 numpy>=1.26
 fastapi>=0.100
 uvicorn>=0.20

@@ -348,6 +348,11 @@ function errorTitle(error) {
  * 못 알아본 오류는 원문을 그대로 보여준다 — 틀린 번역보다 낫다.
  */
 const ERROR_HINTS = [
+  // qiskit 내부에서 matplotlib을 찾다 실패하는 경로(qc.draw("mpl") 등)까지 덮는다.
+  // 서버 이미지에는 matplotlib이 없다 — Figure를 브라우저로 보낼 방법이 없어서
+  // 설치해 봐야 아무 일도 일어나지 않는 것처럼 보이기 때문이다.
+  [/matplotlib|pylatexenc/i,
+   '여기서는 그림을 직접 그리지 않아요. 실행하면 측정 결과 그래프와 회로가 오른쪽에 자동으로 나와요.'],
   [/no counts for experiment/i,
    '회로에 measure가 없어서 셀 결과가 없어요. qc.measure(...)를 넣었는지 확인해 보세요.'],
   [/not in the circuit|out of range for size|index .* out of range/i,

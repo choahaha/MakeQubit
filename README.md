@@ -105,6 +105,29 @@ RLS는 브라우저(anon 키)에 **insert만** 허용한다. 학생이 남의 �
 - `open`, `input`, `compile` 등을 학생 네임스페이스에서 제거
 - 최소 환경변수만 상속 (서버 비밀값 없음), Docker에서 비-root 사용자로 실행
 
+### 학생은 아무것도 설치하지 않는다
+
+IBM Quantum 교실 자료는 학생 각자의 Python 환경에 `qiskit`, `qiskit-ibm-runtime`,
+`qiskit-aer`, `qiskit.visualization`, `numpy`, `pylatexenc`를 설치하라고 안내한다.
+그건 로컬 Jupyter 방식일 때의 요구사항이고, MakeQubit에는 해당하지 않는다.
+코드는 서버에서 실행되고 학생은 브라우저만 있으면 된다.
+
+서버에 설치되는 것과 그 이유:
+
+| 패키지 | 상태 | 이유 |
+|---|---|---|
+| `qiskit` | 2.1+ | 회로 작성 |
+| `qiskit-aer` | 0.17+ | 시뮬레이션 |
+| `numpy` | 1.26+ | 학생이 쓸 수 있게 |
+| `qiskit-ibm-runtime` | **없음** | 실제 하드웨어는 쓰지 않는다. 대기시간과 장비 상태가 학생마다 달라져 수행 자료의 비교 가능성이 깨진다. 샌드박스가 네트워크 모듈도 막는다 |
+| `qiskit.visualization`, `pylatexenc`, `matplotlib` | **없음** | matplotlib Figure를 브라우저로 보낼 수단이 없다. 측정 히스토그램과 회로는 프론트엔드가 그린다 |
+
+`plot_histogram`이나 `qc.draw("mpl")`을 쓰면 "여기서는 그림을 직접 그리지 않아요.
+실행하면 오른쪽에 자동으로 나와요"라는 안내가 뜬다. 조용한 무반응이나
+`ModuleNotFoundError`보다 낫다.
+
+### 격리의 한계
+
 **이건 완전한 샌드박스가 아니다.** Python 수준의 방어라 결정적인 공격자는 우회할 수
 있다. 참여자 코드로 들어오는 닫힌 수업 환경을 전제로 한 방어다. 공개 URL로 누구나
 접근하게 할 계획이라면 컨테이너 격리로 바꿔야 한다.

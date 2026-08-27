@@ -37,6 +37,15 @@ DENIED_MODULES = {
     "resource", "tempfile", "webbrowser", "runpy", "code", "codeop",
 }
 
+# 그림을 직접 그리는 경로. 설치되어 있든 아니든 여기서는 쓸 수 없다 —
+# matplotlib Figure는 브라우저로 보낼 수단이 없어서, 되더라도 아무 일도
+# 일어나지 않는 것처럼 보인다. 조용한 무반응보다 분명한 안내가 낫다.
+PLOTTING_MODULES = {"matplotlib", "pylatexenc", "seaborn", "PIL"}
+PLOTTING_MESSAGE = (
+    "여기서는 그림을 직접 그리지 않아요. 실행하면 측정 결과 그래프와 회로가 "
+    "오른쪽에 자동으로 나와요."
+)
+
 # Allowed on top of whatever the interpreter pre-imported at startup.
 ALLOWED_MODULES = {
     "qiskit", "qiskit_aer", "numpy", "np",
@@ -80,6 +89,16 @@ def build_student_builtins():
 
     def guarded_import(name, globals=None, locals=None, fromlist=(), level=0):
         root = name.split(".")[0]
+
+        # qiskit.visualization은 root가 'qiskit'이라 화이트리스트를 통과한다.
+        # 전체 이름과 fromlist를 같이 봐야 걸린다.
+        if name == "qiskit.visualization" or (
+            root == "qiskit" and "visualization" in (fromlist or ())
+        ):
+            raise ImportError(PLOTTING_MESSAGE)
+        if root in PLOTTING_MODULES:
+            raise ImportError(PLOTTING_MESSAGE)
+
         if root in DENIED_MODULES:
             raise ImportError(
                 f"'{root}' 모듈은 이 실습 환경에서 사용할 수 없어요. "
