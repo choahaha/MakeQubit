@@ -52,7 +52,7 @@ form.addEventListener('submit', async (event) => {
       screen: `${window.screen.width}x${window.screen.height}`,
     });
     await flush();
-    window.location.href = `/lesson.html?id=${lessons[0].id}`;
+    window.location.href = '/lessons.html';
   } catch (error) {
     showError(error.message);
     button.disabled = false;

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>MakeQubit — 실습 목차</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+  <script type="module" src="/src/lessons.js"></script>
+  <style>body { opacity: 0; } body.ready { opacity: 1; transition: opacity 0.15s; }</style>
+</head>
+<body class="bg-slate-50 font-display text-slate-800 min-h-screen flex flex-col">
+
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+        <span class="material-icons-round text-lg">terminal</span>
+      </div>
+      <h1 class="font-extrabold text-lg tracking-tight">실습 목차</h1>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="participant-chip" class="text-xs font-mono bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full"></span>
+      <button id="btn-exit" class="text-xs font-bold text-slate-500 hover:text-accent-red transition px-2 py-1 rounded-lg hover:bg-slate-50">
+        나가기
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 px-6 py-8 max-w-4xl w-full mx-auto">
+
+    <!-- 이어서 하기 -->
+    <section id="resume" class="hidden mb-8">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">이어서 하기</h2>
+      <a id="resume-link" href="#"
+        class="block bg-white rounded-2xl border-2 border-primary/30 p-5 hover:border-primary transition group">
+        <div class="flex items-center gap-4">
+          <div class="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center shrink-0">
+            <span class="material-icons-round">play_arrow</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p id="resume-meta" class="text-[11px] font-bold text-primary"></p>
+            <p id="resume-title" class="font-bold text-lg leading-tight"></p>
+            <p id="resume-sub" class="text-sm text-slate-500"></p>
+          </div>
+          <span class="material-icons-round text-slate-300 group-hover:text-primary transition">chevron_right</span>
+        </div>
+      </a>
+    </section>
+
+    <!-- 전체 진행 -->
+    <section class="mb-8">
+      <div class="flex items-baseline justify-between mb-2">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">전체 진행</h2>
+        <p id="progress-label" class="text-xs font-mono text-slate-500"></p>
+      </div>
+      <div class="h-2 bg-slate-200 rounded-full overflow-hidden flex gap-px">
+        <div id="progress-submitted" class="h-full bg-primary transition-all"></div>
+        <div id="progress-passed" class="h-full bg-accent-green transition-all"></div>
+        <div id="progress-started" class="h-full bg-amber-400 transition-all"></div>
+      </div>
+      <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+        <span class="flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-primary"></i>제출함</span>
+        <span class="flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-accent-green"></i>목표 달성</span>
+        <span class="flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-amber-400"></i>해보는 중</span>
+        <span class="flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-slate-200"></i>아직 안 함</span>
+      </div>
+    </section>
+
+    <div id="sessions" class="space-y-8"></div>
+
+  </main>
+
+  <footer class="py-6 text-center text-xs text-slate-500">
+    아무 레슨이나 눌러서 시작할 수 있어요. 순서대로 하는 걸 추천해요.
+  </footer>
+
+</body>
+</html>

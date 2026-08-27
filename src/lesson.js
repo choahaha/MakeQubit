@@ -6,9 +6,9 @@ import { checkLesson } from './lib/check.js';
 import { renderCircuitSvg } from './lib/circuit-svg.js';
 import { getParticipant } from './lib/session.js';
 import { logEvent, logCodeRun, logSubmission, flush, nextSeq } from './lib/logger.js';
+import { getProgress, updateProgress, statusOf } from './lib/progress.js';
 
 const EDIT_DEBOUNCE_MS = 2500;
-const PROGRESS_KEY = 'makequbit.progress';
 
 const participant = getParticipant();
 if (!participant) window.location.replace('/');
@@ -26,26 +26,13 @@ let hintsShown = 0;
 let lastResult = null;
 let lastResultAt = null;
 let editTimer = null;
-let passed = false;
-let submissionIndex = 0;
-let submitted = false;
-
-/* ===================== 진행 상태 ===================== */
-
-function readProgress() {
-  try {
-    return JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
-  } catch {
-    return {};
-  }
-}
-
-function markComplete(id) {
-  const progress = readProgress();
-  progress[id] = true;
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-  renderProgressDots();
-}
+// 지난 차시의 진행을 이어받는다. 이걸 안 하면 이미 통과한 레슨을 다시 열어
+// 제출했을 때 passed가 false로 덮어써지고, submission_index도 1부터 다시
+// 세어 같은 번호가 두 번 남는다.
+const saved = getProgress(lesson.id);
+let passed = saved.passed === true;
+let submissionIndex = saved.submitted || 0;
+let submitted = submissionIndex > 0;
 
 /* ===================== 레슨 안내 렌더 ===================== */
 
@@ -93,20 +80,24 @@ function renderLessonInfo() {
   updateHintButton();
 }
 
+const DOT_COLOR = {
+  submitted: 'bg-primary',
+  passed: 'bg-accent-green',
+  started: 'bg-amber-400',
+  todo: 'bg-slate-200 hover:bg-slate-300',
+};
+
 function renderProgressDots() {
   const container = document.getElementById('progress-dots');
-  const progress = readProgress();
   container.innerHTML = '';
 
   lessons.forEach((item, index) => {
     const dot = document.createElement('a');
     dot.href = `/lesson.html?id=${item.id}`;
-    dot.title = `${item.week}주차 · ${item.title}`;
-    const state = progress[item.id]
-      ? 'bg-accent-green'
-      : index === lessonIndex ? 'bg-primary' : 'bg-slate-200 hover:bg-slate-300';
+    dot.title = `${item.week}주 ${item.session}차시 · ${item.title}`;
+    const color = index === lessonIndex ? 'bg-primary' : DOT_COLOR[statusOf(item.id)];
     const size = index === lessonIndex ? 'w-5' : 'w-2';
-    dot.className = `h-2 ${size} rounded-full transition-all ${state}`;
+    dot.className = `h-2 ${size} rounded-full transition-all ${color}`;
     container.appendChild(dot);
   });
 }
@@ -268,6 +259,7 @@ async function run() {
   editor.markError(null);
   document.getElementById('run-status').textContent = '';
 
+  updateProgress(lesson.id, { runs: runIndex });
   logEvent('run_click', {
     run_index: runIndex,
     code_chars: code.length,
@@ -298,7 +290,8 @@ async function run() {
     if (outcome.passed) {
       if (!passed) {
         passed = true;
-        markComplete(lesson.id);
+        updateProgress(lesson.id, { passed: true });
+        renderProgressDots();
       }
       renderStatus('pass', '목표 달성!', submitted
         ? '이미 제출했어. 더 고쳐서 다시 제출해도 돼.'
@@ -450,13 +443,18 @@ async function confirmSubmit() {
     context,
   });
 
+  updateProgress(lesson.id, { submitted: submissionIndex, passed });
+  renderProgressDots();
   closeSubmit();
   revealSolution();
   updateSubmitButton();
 }
 
-/** 제출 후에만 해설을 연다. 그 전에 보이면 문제해결 과정이 사라진다. */
-function revealSolution() {
+/**
+ * 제출 후에만 해설을 연다. 그 전에 보이면 문제해결 과정이 사라진다.
+ * @param {boolean} revealedByAction 방금 제출해서 열렸는가 (재방문이면 false)
+ */
+function revealSolution(revealedByAction = true) {
   const block = document.getElementById('solution-block');
   if (!block.classList.contains('hidden')) return;
 
@@ -467,8 +465,10 @@ function revealSolution() {
   }
   document.getElementById('solution-text').textContent = lesson.solution?.explanation || '';
   block.classList.remove('hidden');
-  block.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  logEvent('solution_viewed', { submission_index: submissionIndex }, lesson.id);
+  if (revealedByAction) {
+    block.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    logEvent('solution_viewed', { submission_index: submissionIndex }, lesson.id);
+  }
 }
 
 function updateSubmitButton() {
@@ -565,6 +565,11 @@ function bindControls() {
 
 renderLessonInfo();
 renderProgressDots();
+if (submitted) {
+  // 이미 제출한 레슨을 다시 열었다. 해설은 이미 본 것이므로 계속 열어 둔다.
+  revealSolution(false);
+  updateSubmitButton();
+}
 initEditor();
 bindControls();
 
