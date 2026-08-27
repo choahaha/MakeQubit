@@ -51,6 +51,7 @@ Supabase Dashboard → SQL Editor에서 순서대로 실행한다:
 4. `backend/sql/004_lock_analysis_views.sql` — 분석 뷰 잠금 (이미 배포된 DB 보수용)
 5. `backend/sql/005_nonstudent_participants.sql` — `Q00`(점검용) · `T00`(교사용) + 테스트 데이터 정리
 6. `backend/sql/006_circuit_spec.sql` — 회로 구조 저장 + 개념 오류 분석용 뷰
+7. `backend/sql/007_submissions.sql` — 명시적 제출 (`answer_submitted`)
 
 `004`, `005`는 `001`~`003`을 이미 돌린 DB를 보수하기 위한 것이다. 새 DB라면
 `001`~`003`만 돌려도 같은 상태가 된다 (`002`에 잠금과 필터가 들어 있다).
@@ -87,7 +88,8 @@ RLS는 브라우저(anon 키)에 **insert만** 허용한다. 학생이 남의 �
 | `participants` | 참여자 코드 (실명·학번 없음). 사전 등록된 명부만 존재 |
 | `learning_events` | lesson_open, code_edit, paste, run_click, run_result, hint_open, check_result, reset_code, lesson_leave |
 | `code_runs` | 실행할 때마다의 **코드 전문**, **회로 구조**, 상태, 오류 유형/줄, 출력, counts, 실행 시간 |
-| `reflections` | 레슨 종료 시 짧은 자기보고 |
+| `submissions` | 학생이 선언한 최종 답 — 코드 전문, 설명, 제출 시점의 통과 여부·실행 수·힌트 수 |
+| `reflections` | (구) 레슨 종료 시 자기보고. 제출이 대체했다 |
 
 `code_runs`만으로 한 학생이 코드를 어떻게 고쳐 나갔는지 순서대로 재구성할 수 있다.
 `circuit_spec`에 게이트 시퀀스가 들어 있어, counts만으로는 안 보이는 개념 오류
@@ -138,6 +140,22 @@ IBM Quantum 교실 자료는 학생 각자의 Python 환경에 `qiskit`, `qiskit
 
 macOS에서는 `RLIMIT_AS`(메모리)가 제대로 적용되지 않는다. Linux(Docker) 배포에서는
 동작한다. 로컬 개발 중에는 타임아웃만 믿을 것.
+
+## 피드백 수준
+
+연구가 보려는 것이 문제해결 과정이므로, 플랫폼이 먼저 답을 주면 그 과정이 사라진다.
+네 단계로 나눠 두었다.
+
+| 상황 | 무엇을 보여주는가 |
+|---|---|
+| 실행 오류 | Python/Qiskit 오류를 줄 번호까지, 자주 나오는 것은 한국어로 번역 |
+| 개념 오류 | **관찰된 사실만.** "00과 11만 나와야 하는데 아직 다른 결과가 섞여 있어요" — 원인은 지목하지 않는다 |
+| 힌트 요청 | 3단계, 마지막이 정답. 몇 번째 힌트를 언제 열었는지 기록된다 |
+| 제출 후 | 정답 코드와 해설 (`solution`). 제출 전에는 열리지 않는다 |
+
+`check.message`에 "CX가 빠졌을 수 있어요" 같은 원인 지목을 다시 넣지 말 것.
+학생이 힌트를 요청하는지 스스로 고치는지가 이 연구의 관심사인데, 플랫폼이
+먼저 알려주면 그 분기가 데이터에서 사라진다.
 
 ## 레슨 추가
 

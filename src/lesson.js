@@ -5,8 +5,7 @@ import { runCode } from './lib/api.js';
 import { checkLesson } from './lib/check.js';
 import { renderCircuitSvg } from './lib/circuit-svg.js';
 import { getParticipant } from './lib/session.js';
-import { logEvent, logCodeRun, flush, nextSeq } from './lib/logger.js';
-import { supabase } from './lib/supabase.js';
+import { logEvent, logCodeRun, logSubmission, flush, nextSeq } from './lib/logger.js';
 
 const EDIT_DEBOUNCE_MS = 2500;
 const PROGRESS_KEY = 'makequbit.progress';
@@ -28,6 +27,8 @@ let lastResult = null;
 let lastResultAt = null;
 let editTimer = null;
 let passed = false;
+let submissionIndex = 0;
+let submitted = false;
 
 /* ===================== 진행 상태 ===================== */
 
@@ -298,9 +299,9 @@ async function run() {
         passed = true;
         markComplete(lesson.id);
       }
-      renderStatus('pass', '목표 달성!', lesson.check?.type === 'none'
-        ? '자유롭게 더 실험해 봐도 좋아.'
-        : '다음 레슨으로 넘어가도 좋아.');
+      renderStatus('pass', '목표 달성!', submitted
+        ? '이미 제출했어. 더 고쳐서 다시 제출해도 돼.'
+        : '준비되면 아래 제출하기를 눌러.');
     } else {
       renderStatus('retry', '실행은 됐어. 그런데 목표와는 조금 달라', outcome.reason);
     }
@@ -310,9 +311,9 @@ async function run() {
       reason: outcome.reason || null,
     }, lesson.id);
 
-    // 히스토그램이 그려지는 걸 먼저 보게 한다. 방금 얻은 결과를 모달로
-    // 곧장 덮으면 학생이 자기가 뭘 해냈는지 못 보고 지나간다.
-    if (outcome.passed && lesson.reflection) setTimeout(openReflection, 1600);
+    // 통과했다고 모달을 띄우지 않는다. 학생이 준비됐을 때 스스로 제출하게
+    // 두면 제출 시점 자체가 데이터가 된다 — 통과하자마자 냈는지, 더 만져
+    // 보고 냈는지.
   }
 
   logEvent('run_result', {
@@ -384,33 +385,101 @@ function errorDetail(error) {
   return `${where}${error.message}${hint ? `\n\n${hint}` : ''}`;
 }
 
-/* ===================== 되돌아보기 ===================== */
+/* ===================== 제출 ===================== */
 
-function openReflection() {
-  const modal = document.getElementById('reflection-modal');
-  document.getElementById('reflection-prompt').textContent = lesson.reflection;
+const DEFAULT_PROMPT = '이 코드가 어떻게 동작하는지 짧게 써 줘. 왜 이렇게 했는지도 좋아.';
+
+function openSubmit() {
+  const modal = document.getElementById('submit-modal');
+  document.getElementById('submit-prompt').textContent =
+    lesson.reflection || DEFAULT_PROMPT;
+
+  // 지금 어떤 상태로 내는지 보여준다. 못 푼 채 내는 것도 선택지다.
+  const chips = [
+    [`실행 ${runIndex}회`, 'bg-slate-100 text-slate-600'],
+    [`힌트 ${hintsShown}개`, hintsShown
+      ? 'bg-secondary-soft text-secondary'
+      : 'bg-slate-100 text-slate-600'],
+    [passed ? '목표 달성' : '아직 목표 미달성', passed
+      ? 'bg-green-100 text-green-700'
+      : 'bg-slate-100 text-slate-600'],
+  ];
+  document.getElementById('submit-summary').innerHTML = chips
+    .map(([text, cls]) =>
+      `<span class="text-[11px] font-bold px-2 py-1 rounded-full ${cls}">${text}</span>`)
+    .join('');
+
   modal.classList.remove('hidden');
-  document.getElementById('reflection-answer').focus();
+  document.getElementById('submit-answer').focus();
+  logEvent('submit_opened', {
+    run_index: runIndex, passed, hints_shown: hintsShown,
+  }, lesson.id);
 }
 
-function closeReflection() {
-  document.getElementById('reflection-modal').classList.add('hidden');
+function closeSubmit() {
+  document.getElementById('submit-modal').classList.add('hidden');
 }
 
-async function submitReflection() {
-  const answer = document.getElementById('reflection-answer').value.trim();
-  if (answer && supabase) {
-    const { error } = await supabase.from('reflections').insert({
-      participant_id: participant.id,
-      lesson_id: lesson.id,
-      prompt: lesson.reflection,
-      answer,
-    });
-    if (error) console.warn('[reflection] insert failed', error.message);
+async function confirmSubmit() {
+  const answer = document.getElementById('submit-answer').value.trim();
+  const code = editor.getCode();
+  submissionIndex += 1;
+  submitted = true;
+
+  const context = {
+    passed,
+    runs: runIndex,
+    hintsShown,
+    secondsOnLesson: Math.round((Date.now() - openedAt) / 1000),
+  };
+
+  logEvent('answer_submitted', {
+    submission_index: submissionIndex,
+    code_chars: code.length,
+    answer_chars: answer.length,
+    ...context,
+    seconds_on_lesson: context.secondsOnLesson,
+  }, lesson.id);
+
+  await logSubmission({
+    lessonId: lesson.id,
+    submissionIndex,
+    code,
+    answer,
+    context,
+  });
+
+  closeSubmit();
+  revealSolution();
+  updateSubmitButton();
+}
+
+/** 제출 후에만 해설을 연다. 그 전에 보이면 문제해결 과정이 사라진다. */
+function revealSolution() {
+  const block = document.getElementById('solution-block');
+  if (!block.classList.contains('hidden')) return;
+
+  const codeEl = document.getElementById('solution-code');
+  if (lesson.solution?.code) {
+    codeEl.textContent = lesson.solution.code;
+    codeEl.classList.remove('hidden');
   }
-  logEvent('reflection_submit', { chars: answer.length, skipped: !answer }, lesson.id);
-  closeReflection();
-  goTo(lessonIndex + 1);
+  document.getElementById('solution-text').textContent = lesson.solution?.explanation || '';
+  block.classList.remove('hidden');
+  block.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  logEvent('solution_viewed', { submission_index: submissionIndex }, lesson.id);
+}
+
+function updateSubmitButton() {
+  const label = document.getElementById('submit-label');
+  const button = document.getElementById('btn-submit');
+  if (!submitted) return;
+  label.textContent = submissionIndex > 1
+    ? `다시 제출 (${submissionIndex}회)`
+    : '다시 제출';
+  button.className =
+    'border border-primary/30 text-primary bg-primary-soft hover:bg-primary/10 '
+    + 'font-bold text-sm px-4 py-2.5 rounded-xl transition flex items-center gap-1.5';
 }
 
 /* ===================== 이동 ===================== */
@@ -467,11 +536,12 @@ function bindControls() {
   prev.addEventListener('click', () => goTo(lessonIndex - 1));
   next.addEventListener('click', () => goTo(lessonIndex + 1));
 
-  document.getElementById('reflection-skip').addEventListener('click', () => {
-    logEvent('reflection_submit', { chars: 0, skipped: true }, lesson.id);
-    closeReflection();
+  document.getElementById('btn-submit').addEventListener('click', openSubmit);
+  document.getElementById('submit-cancel').addEventListener('click', () => {
+    logEvent('submit_cancelled', { run_index: runIndex }, lesson.id);
+    closeSubmit();
   });
-  document.getElementById('reflection-submit').addEventListener('click', submitReflection);
+  document.getElementById('submit-confirm').addEventListener('click', confirmSubmit);
 
   window.addEventListener('keydown', (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
@@ -486,6 +556,7 @@ function bindControls() {
       runs: runIndex,
       hints_shown: hintsShown,
       passed,
+      submissions: submissionIndex,
       last_status: lastResult?.status ?? null,
     }, lesson.id);
   });

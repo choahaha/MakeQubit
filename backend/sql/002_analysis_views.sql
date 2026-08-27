@@ -142,3 +142,46 @@ order by r.created_at;
 
 revoke all on public.v_circuit_ops   from anon, authenticated;
 revoke all on public.v_circuit_shape from anon, authenticated;
+
+-- 레슨별 최종 수행 수준 — 마지막 제출 하나만
+create or replace view public.v_final_submissions
+with (security_invoker = on) as
+select distinct on (s.participant_id, s.lesson_id)
+  p.participant_code,
+  p.group_label,
+  s.lesson_id,
+  s.submission_index as total_submissions,
+  s.passed,
+  s.runs,
+  s.hints_shown,
+  s.seconds_on_lesson,
+  length(s.code)  as code_len,
+  length(coalesce(s.answer, '')) as answer_len,
+  s.answer,
+  s.created_at    as submitted_at
+from public.submissions s
+join public.participants p on p.id = s.participant_id
+where not p.is_test
+order by s.participant_id, s.lesson_id, s.submission_index desc;
+
+-- 통과했는데도 제출하지 않은 경우 / 제출했지만 미통과인 경우를 본다
+create or replace view public.v_submission_gap
+with (security_invoker = on) as
+select
+  p.participant_code,
+  r.lesson_id,
+  max(r.run_index)                                    as runs,
+  bool_or(r.status = 'success')                       as ever_ran_clean,
+  (select count(*) from public.submissions s
+     where s.participant_id = r.participant_id
+       and s.lesson_id = r.lesson_id)                 as submissions,
+  (select bool_or(s.passed) from public.submissions s
+     where s.participant_id = r.participant_id
+       and s.lesson_id = r.lesson_id)                 as ever_submitted_passing
+from public.code_runs r
+join public.participants p on p.id = r.participant_id
+where not p.is_test
+group by p.participant_code, r.participant_id, r.lesson_id;
+
+revoke all on public.v_final_submissions from anon, authenticated;
+revoke all on public.v_submission_gap    from anon, authenticated;

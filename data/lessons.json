@@ -18,13 +18,22 @@
     ],
     "check": {
       "type": "circuit_contains",
-      "gates": ["H"],
-      "message": "회로 그림에 H 상자가 보이지 않아요. qc.h(0)을 넣었는지 확인해 보세요."
+      "gates": [
+        "H"
+      ],
+      "message": "목표한 게이트가 아직 회로에 보이지 않아요."
     },
     "docs": [
-      { "label": "Qiskit QuantumCircuit 문서", "url": "https://docs.quantum.ibm.com/api/qiskit/qiskit.circuit.QuantumCircuit" }
+      {
+        "label": "Qiskit QuantumCircuit 문서",
+        "url": "https://docs.quantum.ibm.com/api/qiskit/qiskit.circuit.QuantumCircuit"
+      }
     ],
-    "reflection": null
+    "reflection": null,
+    "solution": {
+      "code": "qc.h(0)",
+      "explanation": "게이트를 얹을 때는 qc.게이트이름(큐비트번호) 형태로 쓴다. H 게이트는 qc.h(0)이다. 이 한 줄로 0번 큐비트가 0과 1이 겹쳐 있는 중첩 상태가 된다. 회로 그림에 H 상자가 하나 나타나는 것이 그 증거다."
+    }
   },
   {
     "id": "w1-l2-measure",
@@ -47,12 +56,19 @@
       "type": "counts_balanced",
       "outcomes": 2,
       "tolerance": 0.15,
-      "message": "0과 1이 비슷한 비율로 나와야 해요. H 게이트와 measure가 모두 들어갔는지 확인해 보세요."
+      "message": "0과 1이 비슷한 비율로 나와야 하는데 아직 그렇지 않아요."
     },
     "docs": [
-      { "label": "AerSimulator 문서", "url": "https://qiskit.github.io/qiskit-aer/stubs/qiskit_aer.AerSimulator.html" }
+      {
+        "label": "AerSimulator 문서",
+        "url": "https://qiskit.github.io/qiskit-aer/stubs/qiskit_aer.AerSimulator.html"
+      }
     ],
-    "reflection": "측정할 때마다 숫자가 조금씩 달라졌어. 왜 그럴까? 네 생각을 두세 문장으로 써 줘."
+    "reflection": "측정할 때마다 숫자가 조금씩 달라졌어. 왜 그럴까? 네 생각을 두세 문장으로 써 줘.",
+    "solution": {
+      "code": "qc.measure(0, 0)",
+      "explanation": "measure는 '이 큐비트를 재서 저 비트에 적어 둬'라는 뜻이라 값이 두 개 필요하다. 앞이 큐비트 번호, 뒤가 결과를 적을 비트 번호다. H로 만든 중첩은 재기 전까지 0인지 1인지 정해져 있지 않으므로, 1024번 반복해서 세어 봐야 반반이라는 사실이 드러난다. 매번 숫자가 조금씩 달라지는 것이 정상이다."
+    }
   },
   {
     "id": "w1-l3-x-gate",
@@ -73,11 +89,17 @@
     ],
     "check": {
       "type": "counts_keys",
-      "keys": ["1"],
-      "message": "1만 나와야 해요. X 게이트 하나만 얹었는지 확인해 보세요."
+      "keys": [
+        "1"
+      ],
+      "message": "1만 나와야 하는데 아직 다른 결과가 섞여 있어요."
     },
     "docs": [],
-    "reflection": null
+    "reflection": null,
+    "solution": {
+      "code": "qc.x(0)",
+      "explanation": "X 게이트는 0을 1로, 1을 0으로 뒤집는다. 고전 컴퓨터의 NOT과 같다. H와 달리 중첩을 만들지 않으므로 몇 번을 재도 항상 1이 나온다. 모든 양자 게이트가 무작위를 만드는 것은 아니라는 점이 이 레슨의 요지다."
+    }
   },
   {
     "id": "w2-l4-two-h",
@@ -98,11 +120,17 @@
     ],
     "check": {
       "type": "counts_keys",
-      "keys": ["0"],
-      "message": "0만 나와야 해요. H가 정확히 두 번 들어갔는지 확인해 보세요."
+      "keys": [
+        "0"
+      ],
+      "message": "0만 나와야 하는데 아직 다른 결과가 섞여 있어요."
     },
     "docs": [],
-    "reflection": "H를 두 번 했더니 반반이 아니라 0만 나왔어. 동전 던지기를 두 번 하는 것과 뭐가 다를까?"
+    "reflection": "H를 두 번 했더니 반반이 아니라 0만 나왔어. 동전 던지기를 두 번 하는 것과 뭐가 다를까?",
+    "solution": {
+      "code": "qc.h(0)",
+      "explanation": "H를 두 번 걸면 중첩이 더 심해지는 것이 아니라 원래대로 돌아온다. 동전이라면 두 번 던져도 반반이지만, 여기서는 확실하게 0만 나온다. 확률이 섞이는 것이 아니라 파동처럼 겹쳐서 한쪽이 상쇄되기 때문이고, 이것을 간섭이라고 부른다. 양자 게이트가 되돌릴 수 있는 연산이라는 뜻이기도 하다."
+    }
   },
   {
     "id": "w2-l5-two-qubits",
@@ -125,10 +153,14 @@
       "type": "counts_balanced",
       "outcomes": 4,
       "tolerance": 0.1,
-      "message": "네 가지 결과가 골고루 나와야 해요. 두 큐비트 모두에 H를 얹었는지 확인해 보세요."
+      "message": "네 가지 결과가 골고루 나와야 하는데 아직 그렇지 않아요."
     },
     "docs": [],
-    "reflection": null
+    "reflection": null,
+    "solution": {
+      "code": "qc.h(0)\nqc.h(1)",
+      "explanation": "큐비트가 2개면 나올 수 있는 결과는 00, 01, 10, 11 네 가지다. 각 큐비트에 H를 얹으면 네 가지가 약 25%씩 나온다. 이때 두 큐비트는 서로 아무 상관이 없다. 각자 따로 동전을 던지는 것과 같고, 다음 레슨의 얽힘과 비교하기 위한 기준점이 된다."
+    }
   },
   {
     "id": "w2-l6-bell",
@@ -149,13 +181,23 @@
     ],
     "check": {
       "type": "counts_keys",
-      "keys": ["00", "11"],
-      "message": "00과 11만 나와야 해요. 01이나 10이 나왔다면 CX가 빠졌을 수 있어요."
+      "keys": [
+        "00",
+        "11"
+      ],
+      "message": "00과 11만 나와야 하는데 아직 다른 결과가 섞여 있어요."
     },
     "docs": [
-      { "label": "Qiskit 얽힘 튜토리얼", "url": "https://docs.quantum.ibm.com/guides/hello-world" }
+      {
+        "label": "Qiskit 얽힘 튜토리얼",
+        "url": "https://docs.quantum.ibm.com/guides/hello-world"
+      }
     ],
-    "reflection": "01과 10은 왜 한 번도 안 나왔을까? 두 큐비트 사이에 무슨 일이 일어난 걸까?"
+    "reflection": "01과 10은 왜 한 번도 안 나왔을까? 두 큐비트 사이에 무슨 일이 일어난 걸까?",
+    "solution": {
+      "code": "qc.cx(0, 1)",
+      "explanation": "cx는 조종 큐비트가 앞, 표적 큐비트가 뒤다. H로 0번을 중첩으로 만든 뒤 CX를 걸면 두 큐비트가 하나로 묶여, 00과 11만 나오고 01과 10은 아예 나오지 않는다. 앞 레슨에서 네 가지가 골고루 나왔던 것과 대비된다. 한쪽을 재는 순간 다른 쪽도 함께 정해지는 이 상태를 얽힘이라고 한다."
+    }
   },
   {
     "id": "w3-l7-explore",
@@ -174,10 +216,19 @@
       "게이트 순서를 바꾸면 결과가 달라질까? 한 번 확인해 봐.",
       "X를 먼저 걸고 CX를 걸면 어떻게 될까?"
     ],
-    "check": { "type": "none" },
+    "check": {
+      "type": "none"
+    },
     "docs": [
-      { "label": "Qiskit 게이트 목록", "url": "https://docs.quantum.ibm.com/api/qiskit/circuit_library" }
+      {
+        "label": "Qiskit 게이트 목록",
+        "url": "https://docs.quantum.ibm.com/api/qiskit/circuit_library"
+      }
     ],
-    "reflection": "네가 만든 회로는 어떤 결과를 냈어? 실행 전 예상과 같았는지, 달랐다면 왜 달랐다고 생각하는지 써 줘."
+    "reflection": "네가 만든 회로는 어떤 결과를 냈어? 실행 전 예상과 같았는지, 달랐다면 왜 달랐다고 생각하는지 써 줘.",
+    "solution": {
+      "code": null,
+      "explanation": "정해진 답이 없는 레슨이다. 예상과 다른 결과가 나왔다면 그 지점이 가장 배울 것이 많은 곳이다. 게이트 순서를 바꾸면 결과가 달라지는지, X를 먼저 걸고 CX를 걸면 어떻게 되는지 확인해 보면 앞의 여섯 레슨이 하나로 이어진다."
+    }
   }
 ]

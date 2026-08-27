@@ -54,7 +54,32 @@ create table if not exists public.code_runs (
   created_at timestamptz not null default now()
 );
 
--- 4. reflections — 레슨 종료 시 짧은 자기보고 (선택)
+-- 4. submissions — 학생이 '이게 내 답이다'라고 선언한 시점의 스냅샷
+--    통과 판정(check_result)과 다르다. 못 푼 채 제출할 수도 있고,
+--    통과한 뒤 더 만져 보고 제출할 수도 있다. 재제출을 막지 않는다.
+create table if not exists public.submissions (
+  id uuid primary key default gen_random_uuid(),
+  participant_id uuid not null references public.participants(id) on delete cascade,
+  session_id uuid not null,
+  seq int not null,
+  lesson_id text not null,
+  submission_index int not null,     -- 이 레슨에서 몇 번째 제출인가
+  code text not null,                -- 제출 시점의 코드 전문
+  answer text,                       -- 학생이 쓴 설명
+  passed boolean not null,           -- 제출 시점에 목표를 달성한 상태였는가
+  runs int not null,                 -- 제출까지의 실행 횟수
+  hints_shown int not null,          -- 제출까지 연 힌트 수
+  seconds_on_lesson int,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_submissions_participant
+  on public.submissions(participant_id, lesson_id, submission_index);
+create index if not exists idx_submissions_session
+  on public.submissions(session_id, seq);
+
+
+-- 5. reflections — 레슨 종료 시 짧은 자기보고 (선택)
 create table if not exists public.reflections (
   id uuid primary key default gen_random_uuid(),
   participant_id uuid not null references public.participants(id) on delete cascade,
@@ -73,6 +98,8 @@ create index if not exists idx_events_type
   on public.learning_events(event_type);
 create index if not exists idx_runs_participant_lesson
   on public.code_runs(participant_id, lesson_id, run_index);
+create index if not exists idx_submissions_participant
+  on public.submissions(participant_id, lesson_id, submission_index);
 create index if not exists idx_runs_session
   on public.code_runs(session_id, seq);
 
@@ -80,6 +107,7 @@ create index if not exists idx_runs_session
 -- 브라우저는 anon 키를 들고 있다. insert만 열고 select/update/delete는 닫는다.
 -- 참여자가 남의 데이터를 읽거나 자기 로그를 지울 수 없어야 한다.
 alter table public.participants   enable row level security;
+alter table public.submissions    enable row level security;
 alter table public.learning_events enable row level security;
 alter table public.code_runs      enable row level security;
 alter table public.reflections    enable row level security;
@@ -100,6 +128,10 @@ create policy events_insert on public.learning_events
 
 drop policy if exists runs_insert on public.code_runs;
 create policy runs_insert on public.code_runs
+  for insert to anon, authenticated with check (true);
+
+drop policy if exists submissions_insert on public.submissions;
+create policy submissions_insert on public.submissions
   for insert to anon, authenticated with check (true);
 
 drop policy if exists reflections_insert on public.reflections;

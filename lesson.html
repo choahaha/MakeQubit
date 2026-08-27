@@ -71,6 +71,16 @@
           </button>
         </div>
 
+        <div id="solution-block" class="hidden">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-primary mb-2">해설</h2>
+          <div class="bg-primary-soft border border-primary/20 rounded-xl p-3.5 space-y-2.5">
+            <pre id="solution-code"
+                 class="hidden text-[12.5px] leading-relaxed font-code text-slate-800
+                        bg-white/70 rounded-lg px-3 py-2 overflow-x-auto"></pre>
+            <p id="solution-text" class="text-sm leading-relaxed text-slate-700"></p>
+          </div>
+        </div>
+
         <div id="docs-block" class="hidden">
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">더 찾아보기</h2>
           <ul id="docs-list" class="space-y-1.5"></ul>
@@ -100,13 +110,21 @@
 
       <div class="h-16 border-t border-slate-200 flex items-center justify-between px-4 shrink-0 bg-slate-50/60">
         <p id="run-status" class="text-xs text-slate-500 font-mono"></p>
-        <button id="btn-run"
-          class="bg-primary hover:bg-primary-dark text-white font-bold text-sm px-6 py-2.5 rounded-xl
-                 transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-wait shadow-sm">
-          <span id="run-icon" class="material-icons-round text-lg">play_arrow</span>
-          <span id="run-label">실행하기</span>
-          <kbd class="hidden md:inline text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded">⌘↵</kbd>
-        </button>
+        <div class="flex items-center gap-2">
+          <button id="btn-submit"
+            class="border border-slate-300 text-slate-600 hover:border-primary hover:text-primary
+                   font-bold text-sm px-4 py-2.5 rounded-xl transition flex items-center gap-1.5">
+            <span class="material-icons-round text-base">outbox</span>
+            <span id="submit-label">제출하기</span>
+          </button>
+          <button id="btn-run"
+            class="bg-primary hover:bg-primary-dark text-white font-bold text-sm px-6 py-2.5 rounded-xl
+                   transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-wait shadow-sm">
+            <span id="run-icon" class="material-icons-round text-lg">play_arrow</span>
+            <span id="run-label">실행하기</span>
+            <kbd class="hidden md:inline text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded">⌘↵</kbd>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -157,24 +175,31 @@
 
   </main>
 
-  <!-- ===== 되돌아보기 모달 ===== -->
-  <div id="reflection-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+  <!-- ===== 제출 모달 ===== -->
+  <div id="submit-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-6">
     <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
-      <div class="flex items-center gap-2 text-accent-green">
-        <span class="material-icons-round">check_circle</span>
-        <h2 class="font-bold text-lg">잘했어!</h2>
-      </div>
-      <p id="reflection-prompt" class="mt-3 text-sm leading-relaxed text-slate-600"></p>
-      <textarea id="reflection-answer" rows="4"
-        class="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm leading-relaxed
+      <h2 class="font-bold text-lg">이 코드를 제출할까?</h2>
+
+      <div id="submit-summary" class="mt-3 flex flex-wrap gap-1.5"></div>
+
+      <p id="submit-prompt" class="mt-4 text-sm leading-relaxed text-slate-600"></p>
+      <textarea id="submit-answer" rows="4"
+        class="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm leading-relaxed
                focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition resize-none"
         placeholder="여기에 자유롭게 써 줘"></textarea>
+
+      <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
+        제출해도 코드는 계속 고칠 수 있어. 다시 제출하면 새 답으로 저장돼.
+      </p>
+
       <div class="mt-4 flex gap-2">
-        <button id="reflection-skip" class="flex-1 text-sm font-bold text-slate-500 hover:text-slate-600 py-2.5 rounded-xl hover:bg-slate-50 transition">
-          건너뛰기
+        <button id="submit-cancel"
+          class="flex-1 text-sm font-bold text-slate-500 hover:text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 transition">
+          더 해볼래
         </button>
-        <button id="reflection-submit" class="flex-1 bg-primary hover:bg-primary-dark text-white font-bold text-sm py-2.5 rounded-xl transition-colors">
-          제출하고 다음으로
+        <button id="submit-confirm"
+          class="flex-1 bg-primary hover:bg-primary-dark text-white font-bold text-sm py-2.5 rounded-xl transition-colors">
+          제출하기
         </button>
       </div>
     </div>

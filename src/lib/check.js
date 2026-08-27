@@ -1,6 +1,10 @@
 /**
  * 레슨 성공 판정.
  *
+ * 실패 문구는 관찰된 사실만 말한다. 'CX가 빠졌을 수 있어요' 같은 원인 지목은
+ * 하지 않는다 — 플랫폼이 먼저 원인을 알려주면 학생이 힌트를 요청하는지
+ * 스스로 고치는지가 데이터에서 사라지고, 그 분기가 이 연구의 관심사다.
+ *
  * 자동 채점은 일부러 느슨하다. 목표는 점수를 주는 것이 아니라 "이 학생이
  * 목표 상태에 도달했는가"를 로그에 한 줄 남기는 것이다. 판정은 실행 결과만
  * 보고 하며, 코드 문자열을 정규식으로 맞추지 않는다 — 같은 회로를 여러 방식으로
@@ -13,7 +17,7 @@ const CHECKERS = {
 
   /** 측정 결과에 나온 비트열 집합이 기대와 같은가 */
   counts_keys: (result, spec) => {
-    if (!result.counts) return fail('측정 결과(counts)가 없어요. measure를 넣고 시뮬레이터로 실행했나요?');
+    if (!result.counts) return fail('측정 결과가 아직 없어요.');
     const observed = Object.keys(result.counts).sort();
     const expected = [...spec.keys].sort();
     const same = observed.length === expected.length
@@ -35,13 +39,13 @@ const CHECKERS = {
     const target = 1 / entries.length;
     const off = entries.find(([, n]) => Math.abs(n / total - target) > tolerance);
     return off
-      ? fail(`'${off[0]}'이(가) ${Math.round((off[1] / total) * 100)}% 나왔어요. 비슷한 비율이 되도록 회로를 고쳐 보세요.`)
+      ? fail(`'${off[0]}'이(가) ${Math.round((off[1] / total) * 100)}% 나왔어요.`)
       : { passed: true };
   },
 
   /** 회로 그림에 특정 게이트가 들어 있는가 */
   circuit_contains: (result, spec) => {
-    if (!result.circuit_text) return fail('회로가 만들어지지 않았어요. QuantumCircuit을 만들었나요?');
+    if (!result.circuit_text) return fail('회로가 아직 만들어지지 않았어요.');
     const missing = spec.gates.filter((gate) => !result.circuit_text.includes(gate));
     return missing.length
       ? fail(`회로에 ${missing.join(', ')} 게이트가 보이지 않아요.`)

@@ -93,7 +93,7 @@ export async function logCodeRun({ lessonId, runIndex, seqValue, code, result })
   if (!participant || participant.local || !supabase) return;
 
   const error = result.error || {};
-  const { error: insertError } = await supabase.from('code_runs').insert({
+  const row = {
     participant_id: participant.id,
     session_id: getSessionId(),
     seq: seqValue,
@@ -111,8 +111,62 @@ export async function logCodeRun({ lessonId, runIndex, seqValue, code, result })
     // 게이트 시퀀스를 봐야 안다.
     circuit_spec: result.circuit_spec ?? null,
     execution_time_ms: result.execution_time_ms ?? null,
+  };
+
+  const { error: insertError } = await supabase.from('code_runs').insert(row);
+  if (!insertError) return;
+
+  // 프론트가 먼저 배포되고 마이그레이션이 늦으면, 새 컬럼 하나 때문에
+  // insert 전체가 400으로 죽는다. 그 상태로 수업을 하면 한 반의 실행
+  // 기록이 통째로 사라진다. 컬럼을 빼고 한 번 더 시도해서, 최소한
+  // 코드와 결과는 남긴다.
+  if (/circuit_spec/.test(insertError.message)) {
+    const { circuit_spec: _dropped, ...fallback } = row;
+    const { error: retryError } = await supabase.from('code_runs').insert(fallback);
+    if (!retryError) {
+      console.warn('[logger] circuit_spec 컬럼 없음 — 006 마이그레이션 필요. 나머지는 저장됨');
+      return;
+    }
+    console.warn('[logger] code_run insert failed', retryError.message);
+    return;
+  }
+  console.warn('[logger] code_run insert failed', insertError.message);
+}
+
+/**
+ * 제출 스냅샷. 실행 기록과 마찬가지로 큐를 거치지 않고 바로 보낸다 —
+ * 학생이 제출하자마자 탭을 닫아도 최종 답은 남아야 한다.
+ */
+export async function logSubmission({ lessonId, submissionIndex, code, answer, context }) {
+  const participant = getParticipant();
+  if (!participant || participant.local || !supabase) return { saved: false };
+
+  const { error } = await supabase.from('submissions').insert({
+    participant_id: participant.id,
+    session_id: getSessionId(),
+    seq: nextSeq(),
+    lesson_id: lessonId,
+    submission_index: submissionIndex,
+    code,
+    answer: answer || null,
+    passed: context.passed,
+    runs: context.runs,
+    hints_shown: context.hintsShown,
+    seconds_on_lesson: context.secondsOnLesson,
   });
-  if (insertError) console.warn('[logger] code_run insert failed', insertError.message);
+  if (!error) return { saved: true };
+
+  // submissions 테이블이 아직 없으면(007 미실행) 최종 답이 통째로 사라진다.
+  // 학습 궤적 쪽에 원문을 실어 보내 둔다 — 형태는 나쁘지만 잃는 것보다 낫다.
+  console.warn('[logger] submission insert failed', error.message);
+  logEvent('answer_submitted_fallback', {
+    submission_index: submissionIndex,
+    code,
+    answer: answer || null,
+    ...context,
+  }, lessonId);
+  await flush();
+  return { saved: false };
 }
 
 // 탭을 닫거나 다른 앱으로 넘어가도 큐에 남은 이벤트를 잃지 않는다.
