@@ -37,7 +37,10 @@
 
     <div class="flex items-center gap-2">
       <!-- 진행 표시 -->
-      <div id="progress-dots" class="hidden sm:flex items-center gap-1.5 mr-2"></div>
+      <div class="hidden sm:flex items-center gap-2 mr-2">
+        <span id="session-position" class="text-[11px] font-mono text-slate-500"></span>
+        <div id="progress-dots" class="flex items-center gap-1.5"></div>
+      </div>
 
       <button id="btn-prev" class="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed">
         <span class="material-icons-round text-base text-slate-500">chevron_left</span>
@@ -163,7 +166,7 @@
             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">측정 결과</h2>
             <span id="counts-total" class="text-[11px] font-mono text-slate-500"></span>
           </div>
-          <div id="counts-chart" class="space-y-2"></div>
+          <div id="counts-chart"></div>
         </div>
 
         <!-- 출력 -->

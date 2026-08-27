@@ -59,7 +59,9 @@
 }
 
 /* ===== 결과 히스토그램 ===== */
+/* 막대는 바닥에서 자란다. transform-origin을 안 주면 가운데서 벌어진다. */
 .bar-grow {
+  transform-origin: bottom;
   animation: bar-grow 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes bar-grow {

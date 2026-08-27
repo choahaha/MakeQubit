@@ -17,6 +17,14 @@ const lessonId = new URLSearchParams(window.location.search).get('id');
 const lessonIndex = Math.max(0, lessons.findIndex((l) => l.id === lessonId));
 const lesson = lessons[lessonIndex];
 
+// 이동은 이 차시 안에서만 일어난다. 1차시 학생이 화살표만 눌러서 3주차까지
+// 넘어가면, 아직 안 배운 내용을 만나고 수업 진도와도 어긋난다.
+// 차시를 넘어가려면 목차를 거치게 한다.
+const sessionLessons = lessons.filter(
+  (l) => l.week === lesson.week && l.session === lesson.session);
+const sessionIndex = sessionLessons.findIndex((l) => l.id === lesson.id);
+const isSessionEnd = sessionIndex === sessionLessons.length - 1;
+
 const draftKey = `makequbit.draft.${participant.code}.${lesson.id}`;
 const openedAt = Date.now();
 
@@ -91,15 +99,18 @@ function renderProgressDots() {
   const container = document.getElementById('progress-dots');
   container.innerHTML = '';
 
-  lessons.forEach((item, index) => {
+  sessionLessons.forEach((item, index) => {
     const dot = document.createElement('a');
     dot.href = `/lesson.html?id=${item.id}`;
-    dot.title = `${item.week}주 ${item.session}차시 · ${item.title}`;
-    const color = index === lessonIndex ? 'bg-primary' : DOT_COLOR[statusOf(item.id)];
-    const size = index === lessonIndex ? 'w-5' : 'w-2';
+    dot.title = `${index + 1}번째 · ${item.title}`;
+    const color = index === sessionIndex ? 'bg-primary' : DOT_COLOR[statusOf(item.id)];
+    const size = index === sessionIndex ? 'w-5' : 'w-2';
     dot.className = `h-2 ${size} rounded-full transition-all ${color}`;
     container.appendChild(dot);
   });
+
+  document.getElementById('session-position').textContent =
+    `${sessionIndex + 1}/${sessionLessons.length}`;
 }
 
 /* ===================== 힌트 ===================== */
@@ -143,7 +154,8 @@ function showNextHint() {
 const STATUS_STYLES = {
   pass:    { box: 'bg-green-50 border border-green-200 text-green-800', icon: 'check_circle' },
   success: { box: 'bg-slate-100 border border-slate-200 text-slate-600', icon: 'done' },
-  retry:   { box: 'bg-amber-50 border border-amber-200 text-amber-800', icon: 'refresh' },
+  // 재시도는 경고가 아니라 안내다. 힌트와 같은 하늘색 채널을 쓴다.
+  retry:   { box: 'bg-secondary-soft border border-secondary/25 text-slate-700', icon: 'refresh' },
   error:   { box: 'bg-red-50 border border-red-200 text-red-800', icon: 'error_outline' },
 };
 
@@ -169,27 +181,56 @@ function renderCounts(counts) {
   }
 
   const entries = Object.entries(counts).sort(([a], [b]) => a.localeCompare(b));
-  const total = entries.reduce((sum, [, n]) => sum + n, 0);
+  const total = entries.reduce((sum, n) => sum + n[1], 0);
   const max = Math.max(...entries.map(([, n]) => n));
 
   document.getElementById('counts-total').textContent = `${total} shots`;
   const chart = document.getElementById('counts-chart');
   chart.innerHTML = '';
 
+  // Qiskit 튜토리얼의 plot_histogram과 같은 모양으로 그린다. 학생이
+  // 바깥에서 본 그림과 같아야 여기서 본 것을 거기서도 읽을 수 있다.
+  const columns = document.createElement('div');
+  columns.className =
+    'flex items-end justify-around gap-1.5 h-36 border-b border-slate-200 pb-px';
+
   for (const [bits, count] of entries) {
-    const percent = ((count / total) * 100).toFixed(1);
-    const row = document.createElement('div');
-    row.innerHTML = `
-      <div class="flex items-baseline justify-between text-[11px] font-code mb-1">
-        <span class="font-bold text-slate-700">|${bits}⟩</span>
-        <span class="text-slate-500">${count} · ${percent}%</span>
-      </div>
-      <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-        <div class="h-full bg-primary rounded-full origin-left bar-grow"
-             style="width: ${(count / max) * 100}%"></div>
-      </div>`;
-    chart.appendChild(row);
+    const percent = (count / total) * 100;
+    const column = document.createElement('div');
+    column.className = 'flex-1 min-w-0 flex flex-col items-center justify-end h-full gap-1';
+    column.title = `|${bits}⟩ · ${count}회 · ${percent.toFixed(1)}%`;
+
+    const value = document.createElement('span');
+    value.className = 'text-[10px] font-code text-slate-500 tabular-nums';
+    value.textContent = `${percent.toFixed(0)}%`;
+    column.appendChild(value);
+
+    const bar = document.createElement('div');
+    // max-w가 없으면 결과가 한 가지일 때 막대가 패널을 통째로 채워
+    // 그래프가 아니라 색 블록처럼 보인다. 모서리는 살짝만 둥글린다 —
+    // 좁은 막대에 큰 radius를 주면 캡슐이 된다.
+    bar.className = 'w-full max-w-[52px] bg-primary rounded-t-[3px] bar-grow';
+    // 아주 작은 값도 보이게 최소 높이를 준다. 0이 아닌데 안 보이면
+    // 학생은 그 결과가 안 나온 줄 안다.
+    bar.style.height = `${Math.max((count / max) * 100, 2)}%`;
+    column.appendChild(bar);
+
+    columns.appendChild(column);
   }
+  chart.appendChild(columns);
+
+  const labels = document.createElement('div');
+  labels.className = 'flex justify-around gap-1.5 mt-1.5';
+  for (const [bits, count] of entries) {
+    const cell = document.createElement('div');
+    cell.className = 'flex-1 min-w-0 text-center';
+    cell.innerHTML =
+      `<div class="text-[11px] font-code font-bold text-slate-700 truncate">|${bits}⟩</div>`
+      + `<div class="text-[10px] font-code text-slate-400 tabular-nums">${count}</div>`;
+    labels.appendChild(cell);
+  }
+  chart.appendChild(labels);
+
   block.classList.remove('hidden');
 }
 
@@ -445,9 +486,14 @@ async function confirmSubmit() {
 
   updateProgress(lesson.id, { submitted: submissionIndex, passed });
   renderProgressDots();
+  // 상태 카드가 '준비되면 제출하기를 눌러'로 남아 있으면 방금 한 일과 어긋난다.
+  if (passed) {
+    renderStatus('pass', '목표 달성!', '이미 제출했어. 더 고쳐서 다시 제출해도 돼.');
+  }
   closeSubmit();
   revealSolution();
   updateSubmitButton();
+  renderSessionEnd();
 }
 
 /**
@@ -471,6 +517,40 @@ function revealSolution(revealedByAction = true) {
   }
 }
 
+/**
+ * 차시의 마지막 레슨을 제출했으면 목차로 돌아갈 길을 보여준다.
+ * 다음 차시로 바로 넘어가는 버튼은 두지 않는다 — 진도는 수업이 정한다.
+ */
+function renderSessionEnd() {
+  if (!isSessionEnd || !submitted) return;
+  if (document.getElementById('session-end')) return;
+
+  const box = document.createElement('div');
+  box.id = 'session-end';
+  box.className =
+    'rounded-xl border border-primary/25 bg-primary-soft px-4 py-3.5 flex items-center gap-3';
+  box.innerHTML = `
+    <span class="material-icons-round text-primary">flag</span>
+    <div class="min-w-0 flex-1">
+      <p class="text-sm font-bold">${lesson.week}주차 ${lesson.session}차시 끝!</p>
+      <p class="text-xs text-slate-600 mt-0.5">여기까지가 이번 시간 분량이야.</p>
+    </div>`;
+  const link = document.createElement('a');
+  link.href = '/lessons.html';
+  link.className =
+    'shrink-0 bg-primary hover:bg-primary-dark text-white font-bold text-xs px-3 py-2 rounded-lg transition-colors';
+  link.textContent = '목차로';
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    logEvent('session_complete', { week: lesson.week, session: lesson.session }, lesson.id);
+    goToIndex();
+  });
+  box.appendChild(link);
+
+  const host = document.querySelector('#dash-result') || document.getElementById('result-status');
+  host.parentElement.insertBefore(box, host);
+}
+
 function updateSubmitButton() {
   const label = document.getElementById('submit-label');
   const button = document.getElementById('btn-submit');
@@ -485,11 +565,16 @@ function updateSubmitButton() {
 
 /* ===================== 이동 ===================== */
 
-async function goTo(index) {
-  if (index < 0 || index >= lessons.length) return;
+async function goToSession(index) {
+  if (index < 0 || index >= sessionLessons.length) return;
   // 보내고 나서 이동한다. 이동부터 하면 진행 중이던 요청이 취소된다.
   await flush();
-  window.location.href = `/lesson.html?id=${lessons[index].id}`;
+  window.location.href = `/lesson.html?id=${sessionLessons[index].id}`;
+}
+
+async function goToIndex() {
+  await flush();
+  window.location.href = '/lessons.html';
 }
 
 /* ===================== 초기화 ===================== */
@@ -532,10 +617,12 @@ function bindControls() {
 
   const prev = document.getElementById('btn-prev');
   const next = document.getElementById('btn-next');
-  prev.disabled = lessonIndex === 0;
-  next.disabled = lessonIndex === lessons.length - 1;
-  prev.addEventListener('click', () => goTo(lessonIndex - 1));
-  next.addEventListener('click', () => goTo(lessonIndex + 1));
+  prev.disabled = sessionIndex === 0;
+  next.disabled = isSessionEnd;
+  prev.title = prev.disabled ? '이 차시의 첫 레슨이야' : '이전 레슨';
+  next.title = next.disabled ? '이 차시의 마지막 레슨이야. 목차로 돌아가면 돼' : '다음 레슨';
+  prev.addEventListener('click', () => goToSession(sessionIndex - 1));
+  next.addEventListener('click', () => goToSession(sessionIndex + 1));
 
   document.getElementById('btn-submit').addEventListener('click', openSubmit);
   document.getElementById('submit-cancel').addEventListener('click', () => {
@@ -569,6 +656,7 @@ if (submitted) {
   // 이미 제출한 레슨을 다시 열었다. 해설은 이미 본 것이므로 계속 열어 둔다.
   revealSolution(false);
   updateSubmitButton();
+  renderSessionEnd();
 }
 initEditor();
 bindControls();
