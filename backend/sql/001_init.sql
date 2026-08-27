@@ -49,6 +49,7 @@ create table if not exists public.code_runs (
   error_line int,
   stdout text,
   counts jsonb,
+  circuit_spec jsonb,              -- 게이트 시퀀스. 개념 오류 분석의 근거가 된다
   execution_time_ms int,
   created_at timestamptz not null default now()
 );

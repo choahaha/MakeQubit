@@ -21,11 +21,18 @@ import time
 import traceback
 
 # --- limits (seconds / bytes) ------------------------------------------------
-CPU_SECONDS = 6          # hard CPU ceiling; wall-clock timeout lives in runner.py
+CPU_SECONDS = 5          # hard CPU ceiling; wall-clock timeout lives in runner.py
 MEMORY_BYTES = 512 * 1024 * 1024
 MAX_FILE_BYTES = 8 * 1024 * 1024
 MAX_PROCESSES = 64       # qiskit/numpy spawn threads; too low breaks imports
 MAX_OUTPUT_CHARS = 20_000
+
+# 커리큘럼은 큐비트 3개를 넘지 않는다. 12개면 자유 탐구에도 충분하고,
+# 2^12 = 4096 상태라 메모리가 터지지 않는다. 상한이 없으면 QuantumCircuit(30)
+# 한 줄로 슬롯 하나가 몇 초씩 묶이고, 학생은 '실행이 중단됐어요'라는
+# 원인 모를 메시지만 본다.
+MAX_QUBITS = 12
+MAX_SHOTS = 20_000
 
 # --- import policy -----------------------------------------------------------
 # Denied wins over everything, including modules already loaded by qiskit.
@@ -127,6 +134,47 @@ def preimport():
         import qiskit_aer  # noqa: F401
     except ImportError:
         pass
+
+
+def install_size_caps():
+    """큐비트 수와 shots에 상한을 건다.
+
+    rlimit도 결국은 막지만, 그건 프로세스가 죽는 방식이라 학생에게
+    '실행이 중단됐어요'밖에 못 보여준다. 어디가 문제인지 짚어 주려면
+    만드는 순간에 잡아야 한다.
+    """
+    from qiskit import QuantumCircuit
+
+    original_init = QuantumCircuit.__init__
+
+    def guarded_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        if self.num_qubits > MAX_QUBITS:
+            raise ValueError(
+                f"큐비트는 {MAX_QUBITS}개까지 쓸 수 있어요 "
+                f"({self.num_qubits}개를 만들려고 했어요). "
+                f"이 수업에서는 1~3개면 충분해요."
+            )
+
+    QuantumCircuit.__init__ = guarded_init
+
+    try:
+        from qiskit_aer import AerSimulator
+    except ImportError:
+        return
+
+    original_run = AerSimulator.run
+
+    def guarded_run(self, *args, **kwargs):
+        shots = kwargs.get("shots")
+        if shots is not None and shots > MAX_SHOTS:
+            raise ValueError(
+                f"shots는 {MAX_SHOTS:,}번까지 할 수 있어요 "
+                f"({shots:,}번을 요청했어요). 1024번이면 충분히 보여요."
+            )
+        return original_run(self, *args, **kwargs)
+
+    AerSimulator.run = guarded_run
 
 
 def extract_artifacts(namespace):
@@ -245,6 +293,7 @@ def main():
         code = fh.read()
 
     preimport()
+    install_size_caps()
     # Compile separately from exec so syntax errors carry a real line number.
     compile_fn = builtins.compile
     apply_limits()

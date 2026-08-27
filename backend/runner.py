@@ -16,7 +16,7 @@ from pathlib import Path
 
 CHILD = Path(__file__).parent / "sandbox_child.py"
 
-WALL_TIMEOUT_SECONDS = 10   # must exceed sandbox_child.CPU_SECONDS
+WALL_TIMEOUT_SECONDS = 8    # must exceed sandbox_child.CPU_SECONDS
 MAX_CODE_CHARS = 20_000
 
 

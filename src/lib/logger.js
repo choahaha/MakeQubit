@@ -106,6 +106,10 @@ export async function logCodeRun({ lessonId, runIndex, seqValue, code, result })
     error_line: error.line ?? null,
     stdout: result.stdout ?? null,
     counts: result.counts ?? null,
+    // 회로 구조. counts만으로는 '왜 틀렸는지'를 못 본다 — CNOT 방향이
+    // 뒤집혔는지, H가 어디 붙었는지, 큐비트 수가 요구와 다른지는
+    // 게이트 시퀀스를 봐야 안다.
+    circuit_spec: result.circuit_spec ?? null,
     execution_time_ms: result.execution_time_ms ?? null,
   });
   if (insertError) console.warn('[logger] code_run insert failed', insertError.message);

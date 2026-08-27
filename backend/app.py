@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from runner import CodeTooLong, WALL_TIMEOUT_SECONDS, run_code
+from sandbox_child import MAX_QUBITS, MAX_SHOTS
 
 app = FastAPI(title="MakeQubit Execution API")
 
@@ -95,6 +96,8 @@ def limits():
         "timeout_seconds": WALL_TIMEOUT_SECONDS,
         "max_concurrent_runs": MAX_CONCURRENT_RUNS,
         "runs_per_minute": RUNS_PER_WINDOW,
+        "max_qubits": MAX_QUBITS,
+        "max_shots": MAX_SHOTS,
         "allowed_modules": ["qiskit", "qiskit_aer", "numpy", "math", "random",
                             "cmath", "itertools", "collections", "json"],
     }

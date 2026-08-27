@@ -25,6 +25,7 @@ let editor;
 let runIndex = 0;
 let hintsShown = 0;
 let lastResult = null;
+let lastResultAt = null;
 let editTimer = null;
 let passed = false;
 
@@ -278,6 +279,7 @@ async function run() {
     lessonId: lesson.id,
   });
   lastResult = result;
+  lastResultAt = Date.now();
   setRunning(false);
 
   renderResult(result);
@@ -435,6 +437,10 @@ function initEditor() {
           code_chars: code.length,
           run_index: runIndex,
           code,
+          // 결과를 본 뒤의 수정인지 구분한다. run_index만으로도 복원되지만,
+          // '결과 기반 수정'은 자주 볼 지표라 바로 질의할 수 있게 남긴다.
+          ms_since_result: lastResultAt ? Date.now() - lastResultAt : null,
+          last_run_status: lastResult?.status ?? null,
         }, lesson.id);
       }, EDIT_DEBOUNCE_MS);
     },

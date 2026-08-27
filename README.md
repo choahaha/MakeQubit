@@ -50,6 +50,7 @@ Supabase Dashboard → SQL Editor에서 순서대로 실행한다:
 3. `backend/sql/003_seed_participants.sql` — 참여자 명부 (Q01~Q20)
 4. `backend/sql/004_lock_analysis_views.sql` — 분석 뷰 잠금 (이미 배포된 DB 보수용)
 5. `backend/sql/005_nonstudent_participants.sql` — `Q00`(점검용) · `T00`(교사용) + 테스트 데이터 정리
+6. `backend/sql/006_circuit_spec.sql` — 회로 구조 저장 + 개념 오류 분석용 뷰
 
 `004`, `005`는 `001`~`003`을 이미 돌린 DB를 보수하기 위한 것이다. 새 DB라면
 `001`~`003`만 돌려도 같은 상태가 된다 (`002`에 잠금과 필터가 들어 있다).
@@ -85,10 +86,13 @@ RLS는 브라우저(anon 키)에 **insert만** 허용한다. 학생이 남의 �
 |---|---|
 | `participants` | 참여자 코드 (실명·학번 없음). 사전 등록된 명부만 존재 |
 | `learning_events` | lesson_open, code_edit, paste, run_click, run_result, hint_open, check_result, reset_code, lesson_leave |
-| `code_runs` | 실행할 때마다의 **코드 전문**, 상태, 오류 유형/줄, 출력, counts, 실행 시간 |
+| `code_runs` | 실행할 때마다의 **코드 전문**, **회로 구조**, 상태, 오류 유형/줄, 출력, counts, 실행 시간 |
 | `reflections` | 레슨 종료 시 짧은 자기보고 |
 
 `code_runs`만으로 한 학생이 코드를 어떻게 고쳐 나갔는지 순서대로 재구성할 수 있다.
+`circuit_spec`에 게이트 시퀀스가 들어 있어, counts만으로는 안 보이는 개념 오류
+(CNOT 방향 반전, H 위치 오류, 요구와 다른 큐비트 수, 게이트 누락)를 사후에
+질의할 수 있다 — `v_circuit_ops`, `v_circuit_shape` 참고.
 `learning_events.seq`는 세션 안에서 단조 증가하므로, 네트워크 지연으로 도착 순서가
 뒤집혀도 실제 행동 순서가 복원된다.
 
