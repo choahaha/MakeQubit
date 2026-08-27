@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 from runner import CodeTooLong, WALL_TIMEOUT_SECONDS, run_code
 from sandbox_child import MAX_QUBITS, MAX_SHOTS
 from admin import router as admin_router
+import roster
 
 app = FastAPI(title="MakeQubit Execution API")
 app.include_router(admin_router)
@@ -78,6 +79,12 @@ def run(req: RunRequest):
     if not req.code.strip():
         raise HTTPException(400, "코드가 비어 있어요")
 
+    # 명부에 없는 코드로는 실행하지 않는다. 이 검사가 없으면 URL을 아는
+    # 사람이 누구나 서버에서 Python을 돌릴 수 있고, 분당 제한도
+    # participant_id를 바꿔 가며 무한히 우회된다.
+    if not roster.is_known(req.participant_id):
+        raise HTTPException(403, "명부에 없는 참여자 코드예요.")
+
     _throttle(req.participant_id)
 
     acquired = _run_slots.acquire(timeout=30)
@@ -98,6 +105,7 @@ def limits():
         "timeout_seconds": WALL_TIMEOUT_SECONDS,
         "max_concurrent_runs": MAX_CONCURRENT_RUNS,
         "runs_per_minute": RUNS_PER_WINDOW,
+        "roster_size": roster.size(),
         "max_qubits": MAX_QUBITS,
         "max_shots": MAX_SHOTS,
         "allowed_modules": ["qiskit", "qiskit_aer", "numpy", "math", "random",

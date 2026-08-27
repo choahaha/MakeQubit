@@ -141,6 +141,8 @@ IBM Quantum 교실 자료는 학생 각자의 Python 환경에 `qiskit`, `qiskit
 macOS에서는 `RLIMIT_AS`(메모리)가 제대로 적용되지 않는다. Linux(Docker) 배포에서는
 동작한다. 로컬 개발 중에는 타임아웃만 믿을 것.
 
+배포 절차와 배포 전 점검은 [DEPLOY.md](DEPLOY.md)를 볼 것.
+
 ## 연구자 화면 (`/admin.html`)
 
 학생 데이터는 RLS 때문에 브라우저에서 읽을 수 없다. 읽으려면 `service_role` 키가

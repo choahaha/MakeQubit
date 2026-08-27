@@ -7,11 +7,14 @@ ADMIN_TOKEN으로 인증한다.
 """
 
 import os
-from collections import Counter, defaultdict
+import secrets
+import threading
+import time
+from collections import Counter, defaultdict, deque
 from urllib.parse import quote
 
 import httpx
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Request
 
 router = APIRouter(prefix="/api/admin")
 
@@ -22,11 +25,52 @@ ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")
 PAGE = 1000  # PostgREST 기본 상한
 
 
-def _require_auth(token: str | None):
+# 무차별 대입 차단. 이 화면 뒤에 반 전체 데이터가 있으므로 토큰을
+# 무한히 찔러볼 수 있으면 안 된다.
+#
+# 다만 한도를 빡빡하게 잡으면 안 된다 — 학교는 전교가 같은 공인 IP를 쓰므로,
+# 호기심에 몇 번 찔러본 학생 때문에 교사가 잠긴다. 실제 방어는 토큰의
+# 길이(192비트)가 하고 이건 자동화 공격을 늦추는 용도다.
+MAX_FAILS = 20
+LOCKOUT_SECONDS = 900
+
+_fail_lock = threading.Lock()
+_fails: dict[str, deque] = defaultdict(deque)
+
+
+def _client_key(request: Request | None) -> str:
+    if request is None:
+        return "unknown"
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _require_auth(token: str | None, request: Request | None = None):
     if not ADMIN_TOKEN:
         raise HTTPException(503, "ADMIN_TOKEN이 설정되지 않았어요. 서버 환경변수를 확인하세요.")
-    if token != ADMIN_TOKEN:
+
+    who = _client_key(request)
+    now = time.monotonic()
+    with _fail_lock:
+        history = _fails[who]
+        while history and now - history[0] > LOCKOUT_SECONDS:
+            history.popleft()
+        if len(history) >= MAX_FAILS:
+            wait = int((LOCKOUT_SECONDS - (now - history[0])) / 60) + 1
+            raise HTTPException(429, f"시도가 너무 많아요. {wait}분 뒤에 다시 해 주세요.")
+
+    # compare_digest를 쓰는 이유: == 는 앞에서부터 비교하다 다르면 즉시
+    # 멈춰서, 응답 시간으로 토큰을 한 글자씩 알아낼 수 있다.
+    if not token or not secrets.compare_digest(token, ADMIN_TOKEN):
+        with _fail_lock:
+            _fails[who].append(now)
         raise HTTPException(401, "관리자 토큰이 맞지 않아요.")
+
+    with _fail_lock:
+        _fails.pop(who, None)
+
     if not SUPABASE_URL or not SERVICE_KEY:
         raise HTTPException(503, "SUPABASE_URL 또는 SUPABASE_SERVICE_KEY가 없어요.")
 
@@ -56,6 +100,7 @@ def _fetch(path: str, params: str = "") -> list:
 
 @router.get("/overview")
 def overview(
+    request: Request,
     include_test: bool = False,
     x_admin_token: str | None = Header(None),
 ):
@@ -65,7 +110,7 @@ def overview(
     섞이면 연구 데이터를 잘못 읽게 된다. 점검 자체를 확인할 때만
     include_test=true를 쓴다.
     """
-    _require_auth(x_admin_token)
+    _require_auth(x_admin_token, request)
 
     filter_clause = "" if include_test else "&is_test=eq.false"
     participants = _fetch(
@@ -175,9 +220,13 @@ def overview(
 
 
 @router.get("/lesson/{lesson_id}")
-def lesson_detail(lesson_id: str, x_admin_token: str | None = Header(None)):
+def lesson_detail(
+    lesson_id: str,
+    request: Request,
+    x_admin_token: str | None = Header(None),
+):
     """한 레슨에서 무엇이 어떻게 틀렸는가."""
-    _require_auth(x_admin_token)
+    _require_auth(x_admin_token, request)
     safe = quote(lesson_id, safe="")
 
     known = {
@@ -231,9 +280,13 @@ def lesson_detail(lesson_id: str, x_admin_token: str | None = Header(None)):
 
 
 @router.get("/participant/{code}")
-def participant_detail(code: str, x_admin_token: str | None = Header(None)):
+def participant_detail(
+    code: str,
+    request: Request,
+    x_admin_token: str | None = Header(None),
+):
     """한 학생의 궤적 — 실행마다의 코드와 그때 무슨 일이 있었는지."""
-    _require_auth(x_admin_token)
+    _require_auth(x_admin_token, request)
     safe = quote(code, safe="")
 
     rows = _fetch(
