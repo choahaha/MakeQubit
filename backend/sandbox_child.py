@@ -35,7 +35,12 @@ CPU_SECONDS = 5          # hard CPU ceiling; wall-clock timeout lives in runner.
 STUDENT_MEMORY_BYTES = 256 * 1024 * 1024
 MEMORY_BYTES = 512 * 1024 * 1024   # fallback when the baseline is unreadable
 MAX_FILE_BYTES = 8 * 1024 * 1024
-MAX_PROCESSES = 64       # qiskit/numpy spawn threads; too low breaks imports
+# RLIMIT_NPROC counts every process and thread belonging to the *user*, not to
+# this process — so the workers, uvicorn and every concurrent run share one
+# budget. At 64 the pool alone nearly filled it and qiskit_aer's thread pool
+# failed to build ("Resource temporarily unavailable"). This is still a fork
+# bomb backstop; it was never per-student isolation.
+MAX_PROCESSES = 512
 MAX_OUTPUT_CHARS = 20_000
 
 # 커리큘럼은 큐비트 3개를 넘지 않는다. 12개면 자유 탐구에도 충분하고,
@@ -95,15 +100,19 @@ def apply_limits():
     baseline = _address_space_in_use()
     as_limit = baseline + STUDENT_MEMORY_BYTES if baseline else MEMORY_BYTES
 
-    for res, value in (
-        (resource.RLIMIT_CPU, CPU_SECONDS),
-        (resource.RLIMIT_AS, as_limit),
-        (resource.RLIMIT_FSIZE, MAX_FILE_BYTES),
-        (resource.RLIMIT_NPROC, MAX_PROCESSES),
-        (resource.RLIMIT_CORE, 0),
+    for res, soft, hard in (
+        # Soft below hard on purpose: at the soft limit the kernel sends
+        # SIGXCPU, which runner.py turns into '계산이 너무 오래 걸려서
+        # 중단했어요'. With soft == hard it goes straight to SIGKILL and the
+        # student gets the generic '실행이 중단됐어요' instead.
+        (resource.RLIMIT_CPU, CPU_SECONDS, CPU_SECONDS + 2),
+        (resource.RLIMIT_AS, as_limit, as_limit),
+        (resource.RLIMIT_FSIZE, MAX_FILE_BYTES, MAX_FILE_BYTES),
+        (resource.RLIMIT_NPROC, MAX_PROCESSES, MAX_PROCESSES),
+        (resource.RLIMIT_CORE, 0, 0),
     ):
         try:
-            resource.setrlimit(res, (value, value))
+            resource.setrlimit(res, (soft, hard))
         except (ValueError, OSError, AttributeError):
             pass
 

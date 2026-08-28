@@ -53,6 +53,10 @@ def _child_env(home: str) -> dict:
         "OMP_NUM_THREADS": "1",
         "OPENBLAS_NUM_THREADS": "1",
         "MKL_NUM_THREADS": "1",
+        # qiskit_aer's simulator is Rust; its thread pool is Rayon's, which
+        # ignores the OMP vars. Parallelising one student's 2-qubit circuit
+        # only steals CPU from the other nineteen.
+        "RAYON_NUM_THREADS": "1",
     }
 
 
