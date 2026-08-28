@@ -58,7 +58,14 @@ app.add_middleware(
     allow_origins=origins,
     # localhost는 포트가 유동적이라(vite가 점유된 포트를 피해 옮겨간다) 정규식으로 연다.
     # vercel.app은 미리보기 배포마다 주소가 달라서 정규식이 필요하다.
-    allow_origin_regex=r"^(http://localhost:\d+|https://.*\.(railway\.app|vercel\.app))$",
+    # makequbit.com은 이 프로젝트의 도메인이라 아예 박아 둔다 — FRONTEND_URL을
+    # 한 번 잊으면 학생 실행이 통째로 막히고, 그건 수업 당일에야 드러난다.
+    # 비밀이 아니므로 코드에 있어도 잃을 게 없다.
+    allow_origin_regex=(
+        r"^(http://localhost:\d+"
+        r"|https://([a-z0-9-]+\.)?makequbit\.com"
+        r"|https://.*\.(railway\.app|vercel\.app))$"
+    ),
     allow_methods=["*"],
     allow_headers=["*"],
 )
