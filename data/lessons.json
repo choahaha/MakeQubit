@@ -397,11 +397,11 @@
       "CX는 'control 큐비트가 1이면 target을 뒤집어라'라는 뜻이야. 조건이 붙은 X라고 보면 돼.",
       "control이 0이면 아무 일도 안 일어나. 이번엔 X로 control을 1로 만들어 놓고 확인해 보자."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# 0번을 1로 만들어 둔다 (이게 control이 된다)\nqc.x(0)\n\n# TODO: 0번을 control, 1번을 target으로 CX를 걸자\n# 힌트: qc.cx(control, target)\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 두 줄을 써 보자\n#  1) 0번을 1로 만든다 — 이게 control이 된다\n#  2) 0번을 control, 1번을 target으로 CX를 건다\n# 힌트: qc.x(번호) / qc.cx(control, target)\n\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
     "hints": [
-      "앞이 control, 뒤가 target이야.",
-      "qc.cx(0, 1) 을 TODO 아래에 넣어 봐.",
-      "정답: qc.cx(0, 1). 결과가 11만 나오면 성공이야. x(0)을 지우고 돌려 보면 00만 나와."
+      "먼저 control이 될 큐비트를 1로 만들어야 CX가 작동해. X 게이트를 쓰면 돼.",
+      "qc.x(0) 을 쓰고, 그다음 줄에 qc.cx(0, 1) 을 써 봐.",
+      "정답: qc.x(0) 과 qc.cx(0, 1). 결과가 11만 나오면 성공이야."
     ],
     "check": {
       "type": "counts_keys",
@@ -413,10 +413,10 @@
     "docs": [],
     "reflection": null,
     "solution": {
-      "code": "qc.cx(0, 1)",
+      "code": "qc.x(0)\nqc.cx(0, 1)",
       "explanation": "control인 0번이 1이므로 CX가 작동해 1번을 뒤집는다. 둘 다 1이 되어 11이 나온다. 만약 x(0)을 지우면 control이 0이라 CX는 아무 일도 하지 않고 00만 나온다. 여기서는 control이 0 또는 1로 확정돼 있어서 결과도 확정이다. 다음 레슨에서 control을 중첩으로 만들면 완전히 다른 일이 벌어진다."
     },
-    "extra": null
+    "extra": "qc.x(0) 을 지우고 돌려 봐. control이 0이면 CX가 어떻게 되는지 확인할 수 있어."
   },
   {
     "id": "l13-bell",
@@ -600,11 +600,11 @@
       "실제 양자 컴퓨터에서는 멀리 떨어진 큐비트끼리 직접 CX를 걸 수 없는 경우가 많아.",
       "그럴 때 SWAP으로 값을 옆으로 옮겨서 붙여 놓고 계산해. 자리를 옮기는 도구야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\nqc.x(0)      # 0번만 1로 만든다\n\n# TODO: 0번과 1번의 값을 서로 바꿔 보자\n# 힌트: qc.swap(번호, 번호)\n\n\nqc.measure([0, 1], [0, 1])\nprint(qc.draw())\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 두 줄을 써 보자\n#  1) 0번만 1로 만든다\n#  2) 0번과 1번의 값을 서로 바꾼다\n# 힌트: qc.x(번호) / qc.swap(번호, 번호)\n\n\n\nqc.measure([0, 1], [0, 1])\nprint(qc.draw())\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
     "hints": [
-      "두 큐비트 번호를 그냥 나란히 쓰면 돼.",
-      "qc.swap(0, 1) 을 TODO 아래에 넣어 봐.",
-      "정답: qc.swap(0, 1). 결과가 10이면 성공이야 (1번이 1, 0번이 0)."
+      "먼저 바꿀 값을 만들어야 해. 0번만 1로 만들어 두면 자리가 바뀐 게 보여.",
+      "qc.x(0) 을 쓰고, 그다음 줄에 qc.swap(0, 1) 을 써 봐.",
+      "정답: qc.x(0) 과 qc.swap(0, 1). 결과가 10이면 성공이야."
     ],
     "check": {
       "type": "counts_keys",
@@ -616,7 +616,7 @@
     "docs": [],
     "reflection": null,
     "solution": {
-      "code": "qc.swap(0, 1)",
+      "code": "qc.x(0)\nqc.swap(0, 1)",
       "explanation": "x(0)으로 0번만 1이었는데 SWAP 뒤에는 1번이 1이 된다. 결과 표기는 오른쪽이 0번이므로 10으로 읽힌다. SWAP은 새로운 계산을 하지 않고 자리만 옮긴다. 실제 기계에서는 서로 붙어 있는 큐비트끼리만 게이트를 걸 수 있어서, 떨어진 큐비트를 계산에 쓰려면 SWAP으로 데려와야 한다."
     },
     "extra": "SWAP을 두 번 걸면 어떻게 될까?"
