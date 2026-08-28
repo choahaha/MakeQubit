@@ -350,13 +350,13 @@
     "subtitle": "벨 상태 만들기",
     "goal": "H와 CX를 조합해, 00과 11만 나오는 얽힘 상태를 만든다.",
     "concept": [
-      "CX 게이트는 '조종 큐비트가 1이면 표적 큐비트를 뒤집어라'라는 뜻이야.",
+      "CX 게이트는 'control 큐비트가 1이면 target 큐비트를 뒤집어라'라는 뜻이야. 조건을 거는 쪽이 control, 뒤집히는 쪽이 target이야.",
       "H로 중첩을 만든 뒤 CX를 걸면, 두 큐비트가 서로 묶여 버려. 이걸 얽힘(entanglement)이라고 해.",
       "얽히면 00과 11만 나오고 01, 10은 아예 안 나와. 한쪽을 재는 순간 다른 쪽도 정해지는 거야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# 1단계: 0번 큐비트를 중첩으로 만든다\nqc.h(0)\n\n# TODO: 2단계 — 0번을 조종, 1번을 표적으로 CX 게이트를 걸자\n# 힌트: qc.cx(조종큐비트, 표적큐비트)\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# 1단계: 0번 큐비트를 중첩으로 만든다\nqc.h(0)\n\n# TODO: 2단계 — 0번을 control, 1번을 target으로 CX 게이트를 걸자\n# 힌트: qc.cx(control, target)\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
     "hints": [
-      "조종(control)이 앞, 표적(target)이 뒤야.",
+      "control이 앞, target이 뒤야.",
       "qc.cx(0, 1) 을 TODO 아래에 넣어 봐.",
       "결과에 00과 11만 있고 01, 10이 없으면 성공이야."
     ],
@@ -377,7 +377,7 @@
     "reflection": null,
     "solution": {
       "code": "qc.cx(0, 1)",
-      "explanation": "cx는 조종 큐비트가 앞, 표적 큐비트가 뒤다. H로 0번을 중첩으로 만든 뒤 CX를 걸면 두 큐비트가 하나로 묶여, 00과 11만 나오고 01과 10은 아예 나오지 않는다. 앞 레슨에서 네 가지가 골고루 나왔던 것과 대비된다. 한쪽을 재는 순간 다른 쪽도 함께 정해지는 이 상태를 얽힘이라고 한다."
+      "explanation": "cx는 control 큐비트가 앞, target 큐비트가 뒤다. H로 0번을 중첩으로 만든 뒤 CX를 걸면 두 큐비트가 하나로 묶여, 00과 11만 나오고 01과 10은 아예 나오지 않는다. 앞 레슨에서 네 가지가 골고루 나왔던 것과 대비된다. 한쪽을 재는 순간 다른 쪽도 함께 정해지는 이 상태를 얽힘이라고 한다."
     },
     "session": 2
   },
@@ -386,16 +386,16 @@
     "week": 2,
     "session": 2,
     "title": "방향을 바꾸면?",
-    "subtitle": "CX의 조종과 표적",
+    "subtitle": "CX의 control과 target",
     "goal": "앞 레슨과 게이트는 같고 CX 방향만 바꿔서, 얽힘이 생기지 않는 것을 확인한다.",
     "concept": [
-      "CX는 조종 큐비트가 1일 때만 표적을 뒤집어. 조종이 0이면 아무 일도 안 일어나.",
-      "앞 레슨에서는 H를 건 0번이 조종이었어. 조종이 중첩이니 표적도 따라 묶였지.",
-      "이번엔 방향을 반대로 걸어 보자. 조종이 되는 1번은 아직 0인 채야."
+      "CX는 control 큐비트가 1일 때만 target을 뒤집어. control이 0이면 아무 일도 안 일어나.",
+      "앞 레슨에서는 H를 건 0번이 control이었어. control이 중첩이니 target도 따라 묶였지.",
+      "이번엔 방향을 반대로 걸어 보자. control이 되는 1번은 아직 0인 채야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\nqc.h(0)\n\n# TODO: 1번을 조종, 0번을 표적으로 CX를 걸어 보자 (앞 레슨과 반대)\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\nqc.h(0)\n\n# TODO: 1번을 control, 0번을 target으로 CX를 걸어 보자 (앞 레슨과 반대)\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
     "hints": [
-      "qc.cx(조종, 표적) 에서 앞뒤 숫자를 바꾸면 돼.",
+      "qc.cx(control, target) 에서 앞뒤 숫자를 바꾸면 돼.",
       "qc.cx(1, 0) 을 넣어 봐.",
       "정답: qc.cx(1, 0). 결과에 00과 01만 나오면 성공이야."
     ],
@@ -411,7 +411,7 @@
             ]
           }
         ],
-        "message": "1번을 조종, 0번을 표적으로 하는 CX가 아직 없어요."
+        "message": "1번이 control, 0번이 target인 CX가 아직 없어요."
       },
       {
         "type": "counts_keys",
@@ -426,7 +426,7 @@
     "reflection": null,
     "solution": {
       "code": "qc.cx(1, 0)",
-      "explanation": "조종이 된 1번 큐비트는 여전히 0이므로 CX는 한 번도 작동하지 않는다. 그래서 0번의 중첩만 그대로 남아 00과 01이 반반씩 나오고, 두 큐비트는 서로 아무 관계가 없다. 얽힘은 CX를 걸었다고 생기는 것이 아니라, 조종 큐비트가 중첩 상태일 때 생긴다. 앞 레슨에서 H를 먼저 건 이유가 이것이다."
+      "explanation": "control이 된 1번 큐비트는 여전히 0이므로 CX는 한 번도 작동하지 않는다. 그래서 0번의 중첩만 그대로 남아 00과 01이 반반씩 나오고, 두 큐비트는 서로 아무 관계가 없다. 얽힘은 CX를 걸었다고 생기는 것이 아니라, control 큐비트가 중첩 상태일 때 생긴다. 앞 레슨에서 H를 먼저 건 이유가 이것이다."
     }
   },
   {
@@ -441,10 +441,10 @@
       "두 큐비트를 묶을 때 H 하나와 CX 하나를 썼어. 세 개도 같은 방법을 이어 붙이면 돼.",
       "000과 111만 나오면 성공이야. 001이나 110이 섞이면 아직 다 안 묶인 거야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(3, 3)\n\n# TODO: 000과 111만 나오도록 게이트를 얹어 보자\n# 쓸 수 있는 게이트: qc.h(번호)  qc.x(번호)  qc.cx(조종, 표적)\n\n\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(3, 3)\n\n# TODO: 000과 111만 나오도록 게이트를 얹어 보자\n# 쓸 수 있는 게이트: qc.h(번호)  qc.x(번호)  qc.cx(control, target)\n\n\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
     "hints": [
       "먼저 큐비트 하나를 중첩으로 만들어야 해. 안 그러면 결과가 한 가지만 나와.",
-      "중첩된 큐비트를 조종으로 삼아, 나머지 둘을 하나씩 묶어 봐. CX가 두 개 필요해.",
+      "중첩된 큐비트를 control로 삼아, 나머지 둘을 하나씩 묶어 봐. CX가 두 개 필요해.",
       "정답: qc.h(0) 다음 qc.cx(0, 1), 그리고 qc.cx(0, 2)"
     ],
     "check": {
@@ -459,7 +459,7 @@
     "reflection": null,
     "solution": {
       "code": "qc.h(0)\nqc.cx(0, 1)\nqc.cx(0, 2)",
-      "explanation": "0번을 H로 중첩으로 만든 뒤, 0번을 조종으로 삼아 1번과 2번을 차례로 묶는다. 0번이 0이면 아무것도 안 뒤집혀 000이 되고, 1이면 둘 다 뒤집혀 111이 된다. 이렇게 셋이 한 덩어리로 묶인 상태를 GHZ 상태라고 부른다. 큐비트를 하나 더 묶고 싶으면 CX를 하나 더 붙이면 된다."
+      "explanation": "0번을 H로 중첩으로 만든 뒤, 0번을 control로 삼아 1번과 2번을 차례로 묶는다. 0번이 0이면 아무것도 안 뒤집혀 000이 되고, 1이면 둘 다 뒤집혀 111이 된다. 이렇게 셋이 한 덩어리로 묶인 상태를 GHZ 상태라고 부른다. 큐비트를 하나 더 묶고 싶으면 CX를 하나 더 붙이면 된다."
     }
   },
   {
@@ -474,7 +474,7 @@
       "이번엔 반대로, 두 큐비트가 항상 다른 값이 나오게 만들어 보자.",
       "새로운 게이트는 필요 없어. 이미 배운 것만으로 되고, 벨 상태에서 한 걸음이면 돼."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 01과 10만 나오도록 회로를 짜 보자\n# 쓸 수 있는 게이트: qc.h(번호)  qc.x(번호)  qc.cx(조종, 표적)\n\n\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 01과 10만 나오도록 회로를 짜 보자\n# 쓸 수 있는 게이트: qc.h(번호)  qc.x(번호)  qc.cx(control, target)\n\n\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
     "hints": [
       "먼저 앞에서 만든 벨 상태(00과 11)를 그대로 만들어 봐.",
       "00과 11이 나오는 상태에서, 두 큐비트 중 하나만 뒤집으면 어떻게 될까?",
@@ -537,7 +537,7 @@
       "먼저 종이에 '이렇게 하면 이런 결과가 나올 것 같다'를 적어 두고 실행해 봐.",
       "예상과 다르면 그게 제일 재미있는 순간이야. 왜 달랐는지 적어 두자."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\n# 큐비트 개수는 마음대로 (2~3개를 추천해)\nqc = QuantumCircuit(2, 2)\n\n# TODO: 여기에 원하는 게이트를 얹어 보자\n# qc.h(번호)  qc.x(번호)  qc.z(번호)  qc.cx(조종, 표적)  qc.swap(0, 1)\n\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\n# 큐비트 개수는 마음대로 (2~3개를 추천해)\nqc = QuantumCircuit(2, 2)\n\n# TODO: 여기에 원하는 게이트를 얹어 보자\n# qc.h(번호)  qc.x(번호)  qc.z(번호)  qc.cx(control, target)  qc.swap(0, 1)\n\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
     "hints": [
       "실행 전에 결과를 먼저 예상해 보고, 예상을 노트에 적어 둬.",
       "게이트 순서를 바꾸면 결과가 달라질까? 한 번 확인해 봐.",

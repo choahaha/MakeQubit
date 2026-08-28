@@ -280,10 +280,10 @@ async function openLesson(lessonId) {
   body.appendChild(shapes);
 
   if (data.cx_direction.length) {
-    const cx = section('CNOT 방향', '조종→표적. 뒤집힌 방향이 섞여 있으면 개념 오류다');
+    const cx = section('CNOT 방향', 'control→target. 뒤집힌 방향이 섞여 있으면 개념 오류다');
     const maxCx = Math.max(...data.cx_direction.map((d) => d.count), 1);
     for (const d of data.cx_direction) {
-      cx.appendChild(bar(`큐비트 ${d.direction}`, d.count, maxCx, 'bg-secondary'));
+      cx.appendChild(bar(`control ${d.direction.replace('→', ' → target ')}`, d.count, maxCx, 'bg-secondary'));
     }
     body.appendChild(cx);
   }

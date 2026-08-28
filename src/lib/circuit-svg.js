@@ -184,7 +184,7 @@ function drawControlled(svg, op, x, rowY, name) {
     svg.appendChild(el('circle', { cx: x, cy: targetY, r: 5, fill: '#6366f1' }));
     return;
   }
-  // ⊕ 표적
+  // ⊕ target
   svg.appendChild(el('circle', {
     cx: x, cy: targetY, r: 11,
     fill: '#ffffff', stroke: '#6366f1', 'stroke-width': 2,
