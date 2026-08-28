@@ -34,6 +34,8 @@ let hintsShown = 0;
 let lastResult = null;
 let lastResultAt = null;
 let editTimer = null;
+let lastHintAt = null;      // 마지막으로 힌트를 연 시각
+let lastHintIndex = 0;
 // 지난 차시의 진행을 이어받는다. 이걸 안 하면 이미 통과한 레슨을 다시 열어
 // 제출했을 때 passed가 false로 덮어써지고, submission_index도 1부터 다시
 // 세어 같은 번호가 두 번 남는다.
@@ -41,6 +43,42 @@ const saved = getProgress(lesson.id);
 let passed = saved.passed === true;
 let submissionIndex = saved.submitted || 0;
 let submitted = submissionIndex > 0;
+
+/* ===================== 화면에 머문 시간 ===================== */
+
+/**
+ * 탭을 실제로 보고 있던 시간만 센다.
+ *
+ * seconds_on_lesson은 벽시계라, 쉬는 시간에 탭을 열어 둔 학생이 20분을
+ * 붙잡고 있었던 것처럼 보인다. 그 값으로 '이 레슨이 어려웠다'를 말하면
+ * 틀린 결론이 나온다. 두 값을 같이 남기고 분석에서 고르게 한다.
+ */
+let activeMs = 0;
+let activeSince = document.hidden ? null : Date.now();
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (activeSince !== null) {
+      activeMs += Date.now() - activeSince;
+      activeSince = null;
+    }
+    logEvent('focus_lost', { active_seconds: activeSeconds() }, lesson.id);
+  } else {
+    activeSince = Date.now();
+    logEvent('focus_gained', {}, lesson.id);
+  }
+});
+
+function activeSeconds() {
+  const running = activeSince === null ? 0 : Date.now() - activeSince;
+  return Math.round((activeMs + running) / 1000);
+}
+
+/** 힌트를 연 뒤 얼마 만에 손을 움직였는가. 힌트가 실제로 쓰였는지의 근거다. */
+function hintContext() {
+  if (!lastHintAt) return { last_hint_index: 0, ms_since_hint: null };
+  return { last_hint_index: lastHintIndex, ms_since_hint: Date.now() - lastHintAt };
+}
 
 /* ===================== 레슨 안내 렌더 ===================== */
 
@@ -94,8 +132,8 @@ function renderLessonInfo() {
 
   // 해설과 더 해보기는 접어 둔다. 왼쪽 패널은 '지금 할 일'이 먼저 보여야
   // 하는데, 긴 글이 펼쳐져 있으면 목표와 개념이 밀려난다.
-  bindPanelToggle('solution-toggle', 'solution-body');
-  bindPanelToggle('extra-toggle', 'extra-body');
+  bindPanelToggle('solution-toggle', 'solution-body', 'solution');
+  bindPanelToggle('extra-toggle', 'extra-body', 'extra');
 
   if (lesson.docs?.length) {
     document.getElementById('docs-block').classList.remove('hidden');
@@ -174,7 +212,13 @@ function showNextHint() {
   card.appendChild(document.createTextNode(text));
   document.getElementById('hint-list').appendChild(card);
 
-  logEvent('hint_open', { hint_index: hintsShown, run_index: runIndex }, lesson.id);
+  lastHintAt = Date.now();
+  lastHintIndex = hintsShown;
+  logEvent('hint_open', {
+    hint_index: hintsShown,
+    run_index: runIndex,
+    active_seconds: activeSeconds(),
+  }, lesson.id);
   updateHintButton();
 }
 
@@ -335,6 +379,8 @@ async function run() {
     code_chars: code.length,
     hints_shown: hintsShown,
     seconds_since_open: Math.round((Date.now() - openedAt) / 1000),
+    active_seconds: activeSeconds(),
+    ...hintContext(),
   }, lesson.id);
 
   const result = await runCode({
@@ -622,7 +668,7 @@ async function goNextFromDone() {
 }
 
 /** 접었다 펴는 패널. 기본은 접힘. */
-function bindPanelToggle(buttonId, bodyId) {
+function bindPanelToggle(buttonId, bodyId, panel) {
   const button = document.getElementById(buttonId);
   const body = document.getElementById(bodyId);
   if (!button || !body) return;
@@ -630,6 +676,15 @@ function bindPanelToggle(buttonId, bodyId) {
   button.addEventListener('click', () => {
     const open = body.classList.toggle('hidden') === false;
     caret.style.transform = open ? 'rotate(90deg)' : '';
+    // 접어 두기 전에는 늘 보이던 글이라 기록할 게 없었다. 이제는 여는 것이
+    // 학생의 선택이므로, 그 선택 자체가 데이터다.
+    logEvent('panel_toggle', {
+      panel,
+      open,
+      run_index: runIndex,
+      passed,
+      active_seconds: activeSeconds(),
+    }, lesson.id);
   });
 }
 
@@ -763,6 +818,7 @@ function initEditor() {
           code,
           ms_since_result: lastResultAt ? Date.now() - lastResultAt : null,
           last_run_status: lastResult?.status ?? null,
+          ...hintContext(),
         }, lesson.id);
       }, EDIT_DEBOUNCE_MS);
     },
@@ -820,6 +876,7 @@ function bindControls() {
     }
     logEvent('lesson_leave', {
       seconds_on_lesson: Math.round((Date.now() - openedAt) / 1000),
+      active_seconds: activeSeconds(),
       runs: runIndex,
       hints_shown: hintsShown,
       passed,
