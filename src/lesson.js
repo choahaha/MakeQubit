@@ -68,6 +68,12 @@ function renderLessonInfo() {
     conceptList.appendChild(item);
   }
 
+  // 빨리 끝낸 학생을 위한 선택 과제. 판정도 정답도 없다.
+  if (lesson.extra) {
+    document.getElementById('extra-text').textContent = lesson.extra;
+    document.getElementById('extra-block').classList.remove('hidden');
+  }
+
   if (lesson.docs?.length) {
     document.getElementById('docs-block').classList.remove('hidden');
     const docsList = document.getElementById('docs-list');

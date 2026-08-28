@@ -34,7 +34,8 @@
       "code": "qc.h(0)",
       "explanation": "게이트를 얹을 때는 qc.게이트이름(큐비트번호) 형태로 쓴다. H 게이트는 qc.h(0)이다. 이 한 줄로 0번 큐비트가 0과 1이 겹쳐 있는 중첩 상태가 된다. 회로 그림에 H 상자가 하나 나타나는 것이 그 증거다."
     },
-    "session": 1
+    "session": 1,
+    "extra": "H 대신 X를 얹으면 회로 그림이 어떻게 달라질까? 바꿔서 그려 봐."
   },
   {
     "id": "l02-measure",
@@ -76,7 +77,8 @@
       "code": "qc.measure(0, 0)",
       "explanation": "measure는 '이 큐비트를 재서 저 비트에 적어 둬'라는 뜻이라 값이 두 개 필요하다. 앞이 큐비트 번호, 뒤가 결과를 적을 비트 번호다. H로 만든 중첩은 재기 전까지 0인지 1인지 정해져 있지 않으므로, 1024번 반복해서 세어 봐야 반반이라는 사실이 드러난다. 매번 숫자가 조금씩 달라지는 것이 정상이다. 참고로 qc.measure_all()을 쓰면 고전 비트를 따로 선언하지 않아도 자동으로 만들어 준다. 고전 비트가 없어진 것이 아니라 measure_all이 대신 만들어 주는 것이다. 이 실습에서는 어느 큐비트를 어느 칸에 적을지 직접 정하는 연습을 위해 measure를 쓴다."
     },
-    "session": 1
+    "session": 1,
+    "extra": "measure를 지우고 실행하면 어떤 오류가 날까? 먼저 예상해 보고 확인해 봐."
   },
   {
     "id": "l03-shots",
@@ -114,7 +116,8 @@
     "solution": {
       "code": "shots = 1024",
       "explanation": "shots는 같은 회로를 몇 번 반복해서 잴지를 정한다. 10번만 재면 우연히 7대 3처럼 치우치는 일이 흔하지만, 1024번 재면 거의 항상 500 근처로 갈라진다. 큐비트가 달라진 것이 아니라 세는 횟수가 달라진 것이다. 양자 컴퓨터의 결과를 읽을 때 한 번의 실행이 아니라 분포를 봐야 하는 이유가 여기에 있다."
-    }
+    },
+    "extra": "shots를 1로 하고 여러 번 실행해 봐. 매번 같은 값이 나올까?"
   },
   {
     "id": "l04-x-gate",
@@ -146,7 +149,8 @@
       "code": "qc.x(0)",
       "explanation": "X 게이트는 0을 1로, 1을 0으로 뒤집는다. 고전 컴퓨터의 NOT과 같다. H와 달리 중첩을 만들지 않으므로 몇 번을 재도 항상 1이 나온다. 모든 양자 게이트가 무작위를 만드는 것은 아니라는 점이 이 레슨의 요지다."
     },
-    "session": 1
+    "session": 1,
+    "extra": "X를 두 번 걸면? 세 번은? 규칙을 찾아봐."
   },
   {
     "id": "l05-random",
@@ -177,7 +181,8 @@
     "solution": {
       "code": "qc.h(0)\nqc.h(1)\nqc.h(2)",
       "explanation": "큐비트 세 개에 각각 H를 걸면 000부터 111까지 여덟 가지가 8분의 1씩 나온다. 각 큐비트가 독립적으로 반반이므로 세 자리 이진수 전체가 고르게 나오는 것이다. 이건 계산으로 흉내 낸 난수가 아니라 측정할 때마다 진짜로 정해지는 값이라, 실제로 암호 키를 만들 때 쓰는 방식이다."
-    }
+    },
+    "extra": "큐비트를 네 개로 늘리면 몇 가지가 나올까? 예상하고 확인해 봐."
   },
   {
     "id": "l06-two-h",
@@ -209,7 +214,8 @@
       "code": "qc.h(0)",
       "explanation": "H를 두 번 걸면 중첩이 더 심해지는 것이 아니라 원래대로 돌아온다. 동전이라면 두 번 던져도 반반이지만, 여기서는 확실하게 0만 나온다. 확률이 섞이는 것이 아니라 파동처럼 겹쳐서 한쪽이 상쇄되기 때문이고, 이것을 간섭이라고 부른다. 양자 게이트가 되돌릴 수 있는 연산이라는 뜻이기도 하다."
     },
-    "session": 2
+    "session": 2,
+    "extra": "H를 세 번 걸면 어떻게 될까? 네 번은?"
   },
   {
     "id": "l07-x-then-h",
@@ -240,7 +246,8 @@
     "solution": {
       "code": "qc.h(0)",
       "explanation": "H는 0에 걸어도 1에 걸어도 측정하면 반반이 나온다. 그래서 측정 결과만 보면 두 회로를 구분할 수 없다. 하지만 두 상태가 정말 같은 것은 아니다. 측정이 못 보는 차이가 남아 있고, 다음 레슨에서 그 차이를 눈에 보이게 만든다."
-    }
+    },
+    "extra": null
   },
   {
     "id": "l08-hidden-difference",
@@ -272,7 +279,8 @@
     "solution": {
       "code": "qc.h(0)",
       "explanation": "0에서 출발해 H를 두 번 걸면 0으로 돌아오고, 1에서 출발해 H를 두 번 걸면 1로 돌아온다. 중간 단계에서는 둘 다 반반이라 구분되지 않았지만, H를 한 번 더 걸자 차이가 결과로 드러났다. 양자 상태에는 측정 한 번으로는 보이지 않는 정보가 들어 있고, 그것을 드러내려면 적절한 게이트를 더 걸어야 한다. 양자 알고리즘이 하는 일이 대체로 이것이다."
-    }
+    },
+    "extra": null
   },
   {
     "id": "l09-z-invisible",
@@ -309,7 +317,8 @@
     "solution": {
       "code": "qc.z(0)",
       "explanation": "Z는 0과 1을 뒤집지 않으므로 측정 결과가 달라지지 않는다. 겉보기에는 아무 일도 하지 않는 게이트처럼 보인다. 그러나 Z가 건드리는 것은 측정에 직접 잡히지 않는 성질이고, 그 성질은 중첩 상태에서 다른 게이트와 만날 때 결과로 드러난다. 다음 레슨에서 확인한다."
-    }
+    },
+    "extra": "Z 대신 S나 T 게이트를 걸어도 결과가 안 변할까? qc.s(0), qc.t(0)로 확인해 봐."
   },
   {
     "id": "l10-hzh",
@@ -341,7 +350,8 @@
     "solution": {
       "code": "qc.z(0)",
       "explanation": "H가 만든 중첩 위에서 Z는 두 갈래 중 한쪽의 부호를 바꾼다. 그 상태로 H를 한 번 더 걸면 두 갈래가 겹칠 때 상쇄되는 쪽이 반대가 되어, 0 대신 1이 나온다. H-Z-H는 X와 같은 동작을 한다. 혼자서는 보이지 않던 성질이 다른 게이트와 겹쳐 결과로 드러나는 것, 이것이 간섭이고 양자 알고리즘의 핵심 도구다."
-    }
+    },
+    "extra": "H-X-H 는 무엇과 같을까? 돌려서 알아봐."
   },
   {
     "id": "l11-two-qubits",
@@ -372,7 +382,8 @@
       "code": "qc.h(0)\nqc.h(1)",
       "explanation": "큐비트가 2개면 나올 수 있는 결과는 00, 01, 10, 11 네 가지다. 각 큐비트에 H를 얹으면 네 가지가 약 25%씩 나온다. 이때 두 큐비트는 서로 아무 상관이 없다. 각자 따로 동전을 던지는 것과 같고, 다음 레슨의 얽힘과 비교하기 위한 기준점이 된다."
     },
-    "session": 1
+    "session": 1,
+    "extra": "한 큐비트에만 H를 걸면 몇 가지가 나올까?"
   },
   {
     "id": "l12-cx-intro",
@@ -404,7 +415,8 @@
     "solution": {
       "code": "qc.cx(0, 1)",
       "explanation": "control인 0번이 1이므로 CX가 작동해 1번을 뒤집는다. 둘 다 1이 되어 11이 나온다. 만약 x(0)을 지우면 control이 0이라 CX는 아무 일도 하지 않고 00만 나온다. 여기서는 control이 0 또는 1로 확정돼 있어서 결과도 확정이다. 다음 레슨에서 control을 중첩으로 만들면 완전히 다른 일이 벌어진다."
-    }
+    },
+    "extra": null
   },
   {
     "id": "l13-bell",
@@ -442,7 +454,8 @@
       "code": "qc.cx(0, 1)",
       "explanation": "cx는 control 큐비트가 앞, target 큐비트가 뒤다. H로 0번을 중첩으로 만든 뒤 CX를 걸면 두 큐비트가 하나로 묶여, 00과 11만 나오고 01과 10은 아예 나오지 않는다. 앞 레슨에서 네 가지가 골고루 나왔던 것과 대비된다. 한쪽을 재는 순간 다른 쪽도 함께 정해지는 이 상태를 얽힘이라고 한다."
     },
-    "session": 1
+    "session": 1,
+    "extra": "measure를 0번만 하면 어떻게 될까? qc.measure(0, 0) 으로 바꿔 봐."
   },
   {
     "id": "l14-cx-direction",
@@ -490,7 +503,8 @@
     "solution": {
       "code": "qc.cx(1, 0)",
       "explanation": "control이 된 1번 큐비트는 여전히 0이므로 CX는 한 번도 작동하지 않는다. 그래서 0번의 중첩만 그대로 남아 00과 01이 반반씩 나오고, 두 큐비트는 서로 아무 관계가 없다. 얽힘은 CX를 걸었다고 생기는 것이 아니라, control 큐비트가 중첩 상태일 때 생긴다. 앞 레슨에서 H를 먼저 건 이유가 이것이다."
-    }
+    },
+    "extra": "H를 1번 큐비트에 걸고 cx(1, 0)을 걸면? 얽힘이 생길까?"
   },
   {
     "id": "l15-opposite",
@@ -523,7 +537,8 @@
     "solution": {
       "code": "qc.h(0)\nqc.cx(0, 1)\nqc.x(1)",
       "explanation": "먼저 벨 상태를 만들면 00과 11이 나온다. 여기서 1번 큐비트만 X로 뒤집으면 00은 10이 되고 11은 01이 된다. 두 큐비트는 여전히 묶여 있고, 다만 '항상 같다'가 '항상 다르다'로 바뀌었을 뿐이다. 얽힘은 값이 같다는 뜻이 아니라 한쪽이 정해지면 다른 쪽도 정해진다는 뜻이다."
-    }
+    },
+    "extra": null
   },
   {
     "id": "l16-cz",
@@ -570,7 +585,8 @@
     "solution": {
       "code": "qc.cz(0, 1)",
       "explanation": "CZ를 빼면 H를 두 번 건 것과 같아 1번이 0으로 돌아오고 01이 나온다. CZ를 끼우면 중첩의 한쪽 부호가 바뀌고, 뒤이은 H에서 간섭이 반대로 일어나 1번이 1이 된다. 앞에서 본 H-Z-H = X와 같은 구조다. 조건이 붙었을 뿐이다. 실제 양자 컴퓨터에서는 CZ가 만들기 쉬운 경우가 많아, CX를 이렇게 CZ로 바꿔 쓰기도 한다."
-    }
+    },
+    "extra": "CZ에서 control과 target을 바꿔 걸면 결과가 달라질까? 먼저 예상해 봐."
   },
   {
     "id": "l17-swap",
@@ -602,10 +618,63 @@
     "solution": {
       "code": "qc.swap(0, 1)",
       "explanation": "x(0)으로 0번만 1이었는데 SWAP 뒤에는 1번이 1이 된다. 결과 표기는 오른쪽이 0번이므로 10으로 읽힌다. SWAP은 새로운 계산을 하지 않고 자리만 옮긴다. 실제 기계에서는 서로 붙어 있는 큐비트끼리만 게이트를 걸 수 있어서, 떨어진 큐비트를 계산에 쓰려면 SWAP으로 데려와야 한다."
+    },
+    "extra": "SWAP을 두 번 걸면 어떻게 될까?"
+  },
+  {
+    "id": "l18-ccx-preview",
+    "week": 2,
+    "session": 2,
+    "title": "control이 둘이면",
+    "subtitle": "CCX 맛보기",
+    "goal": "control이 두 개인 CCX를 걸고, 두 입력이 모두 1일 때만 결과가 1이 되는 것을 확인한다.",
+    "concept": [
+      "지금까지 CX와 CZ는 control이 하나였어. control이 둘인 게이트도 있어.",
+      "CCX는 두 control이 모두 1일 때만 target을 뒤집어. 조건이 두 개인 셈이야.",
+      "입력 두 개에 H를 걸어 네 경우를 한꺼번에 보면, 11일 때만 결과가 1인 게 보여. 3주차에 이걸로 덧셈기를 만든다."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(3, 3)\n\n# 두 입력을 중첩으로 만들어 네 경우를 한꺼번에 본다\nqc.h(0)\nqc.h(1)\n\n# TODO: 0번과 1번이 모두 1일 때만 2번을 뒤집자\n# 힌트: qc.ccx(control1, control2, target)\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nfor k in sorted(counts):\n    print(f'  입력 {k[2]}{k[1]} → 결과 {k[0]}   ({counts[k]}회)')\n",
+    "hints": [
+      "control 두 개를 먼저 쓰고 target을 마지막에 써.",
+      "qc.ccx(0, 1, 2) 를 TODO 아래에 넣어 봐.",
+      "정답: qc.ccx(0, 1, 2). 입력이 11일 때만 결과가 1이면 성공이야."
+    ],
+    "check": [
+      {
+        "type": "circuit_ops",
+        "ops": [
+          {
+            "name": "ccx",
+            "qubits": [
+              0,
+              1,
+              2
+            ]
+          }
+        ],
+        "message": "회로에 CCX가 아직 없어요."
+      },
+      {
+        "type": "counts_keys",
+        "keys": [
+          "000",
+          "001",
+          "010",
+          "111"
+        ],
+        "message": "000, 001, 010, 111 네 가지가 나와야 해요."
+      }
+    ],
+    "docs": [],
+    "reflection": null,
+    "extra": "control과 target을 바꿔서 qc.ccx(0, 2, 1)로 걸면 어떻게 될까? 먼저 예상하고 돌려 봐.",
+    "solution": {
+      "code": "qc.ccx(0, 1, 2)",
+      "explanation": "네 경우가 한 번에 보인다. 입력이 00, 01, 10일 때는 결과가 0이고 11일 때만 1이다. 이게 바로 AND의 진리표다. 중첩 덕분에 네 줄을 따로 돌리지 않고 한 회로에서 확인했다. 3주차에서 이 게이트로 덧셈의 자리올림을 만든다."
     }
   },
   {
-    "id": "l18-ghz",
+    "id": "l19-ghz",
     "week": 2,
     "session": 2,
     "title": "세 큐비트를 묶어라",
@@ -635,10 +704,11 @@
     "solution": {
       "code": "qc.h(0)\nqc.cx(0, 1)\nqc.cx(0, 2)",
       "explanation": "0번을 H로 중첩으로 만든 뒤, 0번을 control로 삼아 1번과 2번을 차례로 묶는다. 0번이 0이면 아무것도 안 뒤집혀 000이 되고, 1이면 둘 다 뒤집혀 111이 된다. 이렇게 셋이 한 덩어리로 묶인 상태를 GHZ 상태라고 부른다. 큐비트를 하나 더 묶고 싶으면 CX를 하나 더 붙이면 된다."
-    }
+    },
+    "extra": "큐비트를 네 개로 늘려 0000과 1111만 나오게 해 봐."
   },
   {
-    "id": "l19-distant",
+    "id": "l20-distant",
     "week": 2,
     "session": 2,
     "title": "떨어진 큐비트도 묶일까",
@@ -683,10 +753,11 @@
     "solution": {
       "code": "qc.cx(0, 3)",
       "explanation": "0번과 3번만 얽히고 가운데 1, 2번은 0인 채로 남는다. 그래서 0000과 1001 두 가지만 나온다. 회로도 위의 위아래 거리는 아무 의미가 없다. 큐비트 번호는 이름표일 뿐이다. 다만 실제 양자 컴퓨터에서는 칩 위에서 서로 이웃한 큐비트끼리만 게이트를 걸 수 있는 경우가 많다. 그럴 때 컴파일러가 SWAP을 자동으로 끼워 넣어 값을 옆으로 옮긴다. 앞 레슨의 SWAP이 그 일을 한다."
-    }
+    },
+    "extra": null
   },
   {
-    "id": "l20-ry",
+    "id": "l21-ry",
     "week": 2,
     "session": 2,
     "title": "원하는 확률 만들기",
@@ -720,10 +791,11 @@
     "solution": {
       "code": "p = 0.7",
       "explanation": "H는 항상 반반이지만 RY는 각도를 정해 확률을 원하는 대로 맞출 수 있다. 각도가 0이면 0만 나오고, 반쯤 돌리면 반반, 끝까지 돌리면 1만 나온다. 그 사이 어디든 가능하다. 2 * asin(sqrt(p)) 라는 식은 확률 p를 각도로 바꾸는 변환일 뿐이니 외울 필요는 없다. 양자 알고리즘은 대체로 이렇게 확률을 조절해서 원하는 답이 나올 가능성을 키우는 일을 한다."
-    }
+    },
+    "extra": "p를 0으로 하면? 1로 하면? 두 경우를 확인해 봐."
   },
   {
-    "id": "l21-reversible",
+    "id": "l22-reversible",
     "week": 3,
     "session": 1,
     "title": "왜 AND는 그냥 못 만들까",
@@ -752,10 +824,11 @@
     "solution": {
       "code": "qc.x(0)",
       "explanation": "X를 두 번 걸면 뒤집고 또 뒤집어 제자리다. H도 그랬다. 양자 게이트는 모두 이렇게 되돌릴 수 있고, 이건 규칙이 아니라 물리 법칙에서 나오는 성질이다. 고전의 AND는 입력 두 개에서 출력 하나만 남기므로 되돌릴 수 없다. 그래서 양자로 AND를 만들 때는 입력을 그대로 두고 결과를 쓸 큐비트를 하나 더 준비한다. 앞으로 나오는 회로에서 큐비트가 많아 보이는 이유가 이것이다."
-    }
+    },
+    "extra": null
   },
   {
-    "id": "l22-xor",
+    "id": "l23-xor",
     "week": 3,
     "session": 1,
     "title": "CX는 XOR이다",
@@ -806,10 +879,11 @@
     "solution": {
       "code": "qc.cx(0, 2)\nqc.cx(1, 2)",
       "explanation": "빈 큐비트에 CX를 걸면 control 값이 그대로 적힌다. 두 번째 CX는 이미 적힌 값에 다시 뒤집기를 더하므로, 결과는 두 입력을 XOR한 값이 된다. 1 XOR 1 = 0 이라 답 자리는 0이 된다. A와 B는 건드리지 않았으니 그대로 남아 있다. 이 XOR이 곧 덧셈의 '합' 자리다. 1+1은 2인데 한 자리에 적으면 0이고 자리올림이 1이니까."
-    }
+    },
+    "extra": "CX를 세 번 걸면 어떻게 될까? XOR이 세 번이면?"
   },
   {
-    "id": "l23-truth-table",
+    "id": "l24-truth-table",
     "week": 3,
     "session": 1,
     "title": "입력을 바꿔 가며 돌려보기",
@@ -841,10 +915,11 @@
     "solution": {
       "code": "qc.cx(0, 2)\nqc.cx(1, 2)",
       "explanation": "반복문 안에서 매번 회로를 새로 만들고, a와 b가 1일 때만 X를 걸어 입력을 세팅한다. 그러면 네 가지 경우가 차례로 실행되어 진리표가 채워진다. 회로 자체는 바뀌지 않고 입력만 달라진다는 점이 중요하다. 앞으로 가산기를 만들 때도 이 틀을 그대로 써서 여덟 가지, 열여섯 가지를 확인하게 된다."
-    }
+    },
+    "extra": null
   },
   {
-    "id": "l24-and",
+    "id": "l25-and",
     "week": 3,
     "session": 1,
     "title": "CCX는 AND다",
@@ -894,10 +969,47 @@
     "solution": {
       "code": "qc.ccx(0, 1, 2)",
       "explanation": "CCX는 control 두 개가 모두 1일 때만 target을 뒤집는다. 그래서 답 자리에는 A AND B가 적힌다. 여기서도 입력은 그대로 남는다. AND를 이렇게 큐비트 세 개로 만드는 이유가 앞에서 본 되돌릴 수 있어야 한다는 성질이다. CX가 XOR이고 CCX가 AND이므로, 이 둘만 있으면 고전 컴퓨터가 하는 계산은 전부 만들 수 있다."
+    },
+    "extra": null
+  },
+  {
+    "id": "l26-function",
+    "week": 3,
+    "session": 1,
+    "title": "회로를 함수로 묶기",
+    "subtitle": "만든 걸 다시 쓰기",
+    "goal": "반가산기를 함수로 만들어, 같은 회로를 여러 번 불러 쓴다.",
+    "concept": [
+      "앞으로 만들 회로는 점점 길어져. 같은 조각을 여러 번 쓰게 되는데, 매번 다시 쓰면 실수가 늘어.",
+      "파이썬 함수로 묶으면 이름만 불러서 쓸 수 있어. 회로 조각에 이름을 붙이는 거야.",
+      "def 이름(qc, 큐비트들): 안에 게이트를 넣으면 돼. 3주차 나머지는 이 방식으로 조립한다."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\ndef half_adder(qc, a, b, s, c):\n    \"\"\"a와 b를 더해 s에 합, c에 자리올림을 적는다.\"\"\"\n    # TODO: 반가산기 세 줄을 여기에 넣자\n    # 힌트: ccx(a, b, c) 하나와 cx(a, s), cx(b, s)\n\n\n\n\nprint('A B | carry sum')\nfor A in (0, 1):\n    for B in (0, 1):\n        qc = QuantumCircuit(4, 2)\n        if A: qc.x(0)\n        if B: qc.x(1)\n        half_adder(qc, 0, 1, 2, 3)      # 이름만 불러서 쓴다\n        qc.measure([2, 3], [0, 1])\n        k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n        print(f'{A} {B} |   {k[0]}    {k[1]}')\n",
+    "hints": [
+      "함수 안이라 들여쓰기가 네 칸이야. qc, a, b, s, c 라는 이름을 그대로 쓰면 돼.",
+      "qc.ccx(a, b, c), qc.cx(a, s), qc.cx(b, s) — 세 줄.",
+      "정답: 세 줄 모두, def 아래에 네 칸 들여쓰기로."
+    ],
+    "check": {
+      "type": "stdout_contains",
+      "needles": [
+        "0 0 |   0    0",
+        "0 1 |   0    1",
+        "1 0 |   0    1",
+        "1 1 |   1    0"
+      ],
+      "message": "네 가지 입력의 결과가 모두 맞게 출력되어야 해요."
+    },
+    "docs": [],
+    "reflection": null,
+    "extra": "half_adder를 두 번 불러서 큐비트 여섯 개짜리 회로를 만들어 봐. 서로 다른 자리에 걸면 돼.",
+    "solution": {
+      "code": "    qc.ccx(a, b, c)\n    qc.cx(a, s)\n    qc.cx(b, s)",
+      "explanation": "회로 조각에 이름을 붙였다. 이제 half_adder(qc, 0, 1, 2, 3)처럼 부르기만 하면 같은 게이트 세 개가 들어간다. 큐비트 번호를 인자로 받으므로 어느 자리에든 걸 수 있다. 다음 레슨부터 전가산기와 두 자리 덧셈을 만들 때, 이렇게 묶어 두면 회로가 길어져도 무엇이 무엇인지 알아볼 수 있다. 실제 양자 프로그램도 이렇게 조각을 쌓아 만든다."
     }
   },
   {
-    "id": "l25-half-adder",
+    "id": "l27-half-adder",
     "week": 3,
     "session": 1,
     "title": "반가산기 만들기",
@@ -948,10 +1060,11 @@
     "solution": {
       "code": "qc.cx(0, 2)\nqc.cx(1, 2)",
       "explanation": "carry는 CCX 하나로 A AND B를, sum은 CX 두 개로 A XOR B를 만든다. 1 + 1 이면 carry가 1, sum이 0이 되어 이진수 10, 즉 2가 된다. 게이트 세 개로 한 자리 덧셈기가 완성된 것이다. 고전 컴퓨터의 반가산기도 XOR 하나와 AND 하나로 만든다. 구조가 똑같다."
-    }
+    },
+    "extra": "carry를 만드는 CCX를 지우면 sum만 남아. 그게 무슨 계산일까?"
   },
   {
-    "id": "l26-verify",
+    "id": "l28-verify",
     "week": 3,
     "session": 1,
     "title": "진리표로 검증하기",
@@ -983,10 +1096,11 @@
     "solution": {
       "code": "qc.ccx(0, 1, 3)\n        qc.cx(0, 2)\n        qc.cx(1, 2)",
       "explanation": "네 줄이 모두 맞으면 반가산기가 제대로 도는 것이다. 1+1 에서만 carry가 1이 되고 sum이 0이 되는 게 핵심이다. 회로는 한 번만 만들고 입력만 바꿔 가며 확인했다는 점도 중요하다 — 실제로 회로를 설계할 때는 이렇게 모든 경우를 돌려 보는 것이 마지막 단계다."
-    }
+    },
+    "extra": null
   },
   {
-    "id": "l27-full-adder",
+    "id": "l29-full-adder",
     "week": 3,
     "session": 2,
     "title": "전가산기",
@@ -1047,10 +1161,11 @@
     "solution": {
       "code": "qc.ccx(0, 1, 4)\nqc.ccx(0, 2, 4)\nqc.ccx(1, 2, 4)",
       "explanation": "sum은 셋을 모두 XOR하면 된다. carry는 두 개씩 짝지은 AND 세 개를 같은 큐비트에 겹쳐 쌓으면 나온다. 셋 중 둘이 1이면 짝 하나만 걸려 carry가 1이 되고, 셋 다 1이면 짝 셋이 모두 걸리는데 1을 세 번 뒤집으면 다시 1이라 여전히 1이다. 결국 '둘 이상이면 1'이 된다. 1+1+1 = 3 은 이진수로 11 이므로 carry 1, sum 1 이 맞다."
-    }
+    },
+    "extra": "CCX 세 개 중 하나를 빼면 어떤 입력에서 틀릴까? 진리표로 찾아봐."
   },
   {
-    "id": "l28-two-bit-adder",
+    "id": "l30-two-bit-adder",
     "week": 3,
     "session": 2,
     "title": "두 자리 덧셈",
@@ -1108,10 +1223,11 @@
     "solution": {
       "code": "qc.cx(1, 6)\nqc.cx(3, 6)\nqc.cx(5, 6)",
       "explanation": "1의 자리에서 나온 carry(q5)가 2의 자리 전가산기의 세 번째 입력이 된다. 그래서 sum은 a1, b1, c1 세 개를 XOR한 값이다. 1 + 3 은 이진수로 01 + 11 = 100, 즉 4다. 여기서 중요한 건 새로운 아이디어가 없다는 점이다. 반가산기와 전가산기를 순서대로 붙였을 뿐인데 자릿수가 늘었다. 이렇게 계속 이어 붙이면 몇 자리든 더할 수 있다."
-    }
+    },
+    "extra": null
   },
   {
-    "id": "l29-superposed-add",
+    "id": "l31-superposed-add",
     "week": 3,
     "session": 2,
     "title": "한 번에 네 덧셈",
@@ -1159,10 +1275,126 @@
     "solution": {
       "code": "qc.h(0)\nqc.h(1)",
       "explanation": "입력에 H를 걸면 A와 B가 각각 0과 1을 동시에 갖는다. 회로는 전과 똑같은데 네 가지 덧셈이 한 번에 계산된다. 결과를 보면 00+00, 01, 10, 11 각각에 맞는 sum과 carry가 정확히 짝지어져 있다. 큐비트를 하나 더 늘리면 여덟 가지, 스무 개면 백만 가지가 동시에 계산된다. 여기까지가 양자 컴퓨터의 출발점이다. 문제는 그다음인데, 마지막 레슨에서 다룬다."
+    },
+    "extra": "큐비트를 하나 더 늘려 세 수를 동시에 더해 봐."
+  },
+  {
+    "id": "l32-one-answer",
+    "week": 3,
+    "session": 2,
+    "title": "왜 답은 하나뿐일까",
+    "subtitle": "3주 정리",
+    "goal": "동시에 계산한 결과를 여러 번 재 보면서, 한 번에 하나씩만 나온다는 사실을 확인한다.",
+    "concept": [
+      "앞 레슨에서 네 덧셈을 한 번에 계산했어. 그런데 재면 그중 하나만 나와.",
+      "1024번 재서 네 가지를 다 본 거지, 한 번에 네 답을 받은 게 아니야.",
+      "그래서 양자 컴퓨터는 '전부 계산하고 전부 읽는' 기계가 아니야. 원하는 답이 나올 확률을 키우는 게 진짜 기술이고, 그걸 양자 알고리즘이라고 해."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(4, 4)\nqc.h(0); qc.h(1)\nqc.ccx(0, 1, 3)\nqc.cx(0, 2)\nqc.cx(1, 2)\nqc.measure([0, 1, 2, 3], [0, 1, 2, 3])\n\n# TODO: shots를 1로 바꿔서 몇 번 실행해 보자\nshots = 100\n\ncounts = sim.run(transpile(qc, sim), shots=shots).result().get_counts()\nprint(f'{shots}번 재서 나온 결과 종류:', len(counts))\nprint(counts)\n",
+    "hints": [
+      "shots 값 하나만 바꾸면 돼.",
+      "shots = 1 로 바꾸고 여러 번 실행해 봐. 매번 다른 하나가 나올 거야.",
+      "정답: shots = 1. 결과가 한 종류만 나오면 성공이야."
+    ],
+    "check": {
+      "type": "counts_total_min_max",
+      "min": 1,
+      "max": 1,
+      "message": "한 번만 재야 해요. shots를 1로 바꿔 보세요."
+    },
+    "docs": [],
+    "reflection": "3주 동안 배운 것 중에 가장 뜻밖이었던 건 뭐야? 왜 그렇게 느꼈는지도 써 줘.",
+    "solution": {
+      "code": "shots = 1",
+      "explanation": "한 번 재면 네 가지 중 하나만 나온다. 다시 실행하면 또 다른 하나가 나온다. 회로 안에서는 네 계산이 동시에 있었지만, 읽는 순간 하나로 정해지기 때문이다. 그래서 양자 컴퓨터가 빠른 이유는 '한 번에 다 계산해서'가 아니다. 쇼어나 그로버 같은 알고리즘은 간섭을 이용해서 원하는 답의 확률만 크게 키우고 나머지는 상쇄시킨다. 우리가 2주차에서 본 H-Z-H 간섭이 바로 그 도구다. 3주 동안 배운 것들이 거기서 만난다."
+    },
+    "extra": "shots를 10으로 하면 네 가지가 다 나올까? 여러 번 해 봐."
+  },
+  {
+    "id": "l33-kickback",
+    "week": 3,
+    "session": 2,
+    "title": "위상 킥백",
+    "subtitle": "target을 건드렸는데 control이 바뀐다",
+    "goal": "target을 |−⟩ 상태로 만들어 두고 CX를 걸어, 바뀌는 쪽이 control이 되는 것을 확인한다.",
+    "concept": [
+      "CX는 control이 target을 뒤집는 게이트였어. 그런데 target을 특별한 상태로 만들어 두면 반대가 돼.",
+      "target에 X와 H를 걸면 |−⟩라는 상태가 돼. 이 상태는 뒤집어도 모양이 그대로고 부호만 바뀌어.",
+      "그 부호가 control 쪽으로 되돌아와. 이걸 위상 킥백이라고 해. 양자 알고리즘이 답을 뽑아내는 방식이야."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(2, 1)\n\nqc.h(0)              # control을 중첩으로\nqc.x(1); qc.h(1)     # target을 |-> 상태로\n\n# TODO: 0번을 control, 1번을 target으로 CX를 걸자\n\n\nqc.h(0)              # control을 다시 H로 되돌려 본다\nqc.measure(0, 0)\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint('control을 재면:', counts)\n",
+    "hints": [
+      "평소처럼 걸면 돼. qc.cx(control, target)",
+      "qc.cx(0, 1) 을 TODO 아래에 넣어 봐.",
+      "정답: qc.cx(0, 1). control이 1만 나오면 성공이야. CX를 빼면 0만 나와."
+    ],
+    "check": [
+      {
+        "type": "circuit_ops",
+        "ops": [
+          {
+            "name": "cx",
+            "qubits": [
+              0,
+              1
+            ]
+          }
+        ],
+        "message": "CX가 아직 없어요."
+      },
+      {
+        "type": "counts_keys",
+        "keys": [
+          "1"
+        ],
+        "message": "control이 1만 나와야 하는데 아직 그렇지 않아요."
+      }
+    ],
+    "docs": [],
+    "reflection": "우리는 target에 CX를 걸었는데 바뀐 건 control이었어. 어떻게 이런 일이 가능할까?",
+    "extra": "target을 |-> 로 만드는 두 줄(x와 h)을 지우고 돌려 봐. 결과가 어떻게 달라져?",
+    "solution": {
+      "code": "qc.cx(0, 1)",
+      "explanation": "CX를 빼면 control은 H를 두 번 건 셈이라 0으로 돌아온다. CX를 넣으면 1이 나온다. target인 |−⟩는 뒤집혀도 모양이 그대로지만 부호가 -1로 바뀐다. 그 부호가 control의 중첩에 실려 되돌아오고, 뒤이은 H에서 간섭이 반대로 일어나 1이 된다. 우리는 target을 건드렸는데 정보는 control에 남았다. 다음 레슨의 알고리즘이 바로 이 방식으로 답을 뽑아낸다."
     }
   },
   {
-    "id": "l30-my-circuit",
+    "id": "l34-bernstein",
+    "week": 3,
+    "session": 2,
+    "title": "숨은 값 한 번에 맞히기",
+    "subtitle": "번스타인-바지라니 알고리즘",
+    "goal": "숨은 비트열을 딱 한 번 물어서 통째로 알아낸다.",
+    "concept": [
+      "상자 안에 비밀 비트열이 숨어 있어. 예를 들어 1101 같은 거야.",
+      "고전 컴퓨터는 한 자리씩 물어봐야 해. 네 자리면 네 번. 자릿수만큼 걸려.",
+      "양자는 전부 중첩으로 넣고 위상 킥백으로 답을 실어 와. 한 번 재면 비밀이 그대로 나와."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\ndef find_secret(secret):\n    n = len(secret)\n    qc = QuantumCircuit(n + 1, n)\n\n    qc.x(n); qc.h(n)                  # 마지막 큐비트를 |-> 로 (킥백 준비)\n    for i in range(n):\n        qc.h(i)                       # 물어볼 자리를 전부 중첩으로\n\n    # 상자에게 딱 한 번 물어본다 — 비밀의 1인 자리마다 CX\n    for i, bit in enumerate(reversed(secret)):\n        if bit == '1':\n            qc.cx(i, n)\n\n    # TODO: 물어본 자리를 전부 다시 H로 되돌리자\n    # 힌트: 위의 for 문과 똑같은 모양이다\n\n\n\n    qc.measure(range(n), range(n))\n    k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n    print(f'  숨은 값 {secret} → 한 번 재서 알아낸 값 {k}')\n\nfind_secret('101')\nfind_secret('1101')\nfind_secret('0110')\n",
+    "hints": [
+      "앞에서 H를 걸었던 for 문을 그대로 한 번 더 쓰면 돼.",
+      "for i in range(n): 다음 줄에 qc.h(i) — 두 줄이야. 들여쓰기는 함수 안이라 네 칸.",
+      "정답: for i in range(n): 과 qc.h(i). 숨은 값과 알아낸 값이 같으면 성공이야."
+    ],
+    "check": {
+      "type": "stdout_contains",
+      "needles": [
+        "숨은 값 101 → 한 번 재서 알아낸 값 101",
+        "숨은 값 1101 → 한 번 재서 알아낸 값 1101",
+        "숨은 값 0110 → 한 번 재서 알아낸 값 0110"
+      ],
+      "message": "세 비밀을 모두 맞혀야 해요."
+    },
+    "docs": [],
+    "reflection": "고전 컴퓨터는 네 자리를 알아내려면 네 번 물어야 해. 양자는 한 번에 알아냈어. 어떻게 그게 가능했을까?",
+    "extra": "비밀이 한 자리(0 또는 1)뿐이면 어떻게 될까? 그게 도이치 알고리즘이야. find_secret('1')로 확인해 봐.",
+    "solution": {
+      "code": "    for i in range(n):\n        qc.h(i)",
+      "explanation": "상자에 딱 한 번 물었는데 비밀이 통째로 나왔다. 비밀의 1인 자리마다 CX가 걸리고, 앞 레슨에서 본 위상 킥백으로 그 정보가 물어본 큐비트들의 위상에 실린다. 마지막 H들이 그 위상을 간섭시켜, 재면 비밀 비트열이 그대로 읽힌다. 고전은 자리마다 한 번씩 물어야 하니 네 자리면 네 번, 스무 자리면 스무 번이다. 양자는 항상 한 번이다. 자릿수가 커질수록 차이가 벌어진다. '한 번에 다 계산해도 답은 하나뿐'이라던 그 하나를, 원하는 답으로 만든 것이다."
+    }
+  },
+  {
+    "id": "l35-my-circuit",
     "week": 3,
     "title": "내 회로 만들기",
     "subtitle": "자유 탐구",
@@ -1192,37 +1424,7 @@
       "code": null,
       "explanation": "정해진 답이 없는 레슨이다. 예상과 다른 결과가 나왔다면 그 지점이 가장 배울 것이 많은 곳이다. 게이트 순서를 바꾸면 결과가 달라지는지, X를 먼저 걸고 CX를 걸면 어떻게 되는지 확인해 보면 앞의 여섯 레슨이 하나로 이어진다."
     },
-    "session": 2
-  },
-  {
-    "id": "l31-one-answer",
-    "week": 3,
     "session": 2,
-    "title": "왜 답은 하나뿐일까",
-    "subtitle": "3주 정리",
-    "goal": "동시에 계산한 결과를 여러 번 재 보면서, 한 번에 하나씩만 나온다는 사실을 확인한다.",
-    "concept": [
-      "앞 레슨에서 네 덧셈을 한 번에 계산했어. 그런데 재면 그중 하나만 나와.",
-      "1024번 재서 네 가지를 다 본 거지, 한 번에 네 답을 받은 게 아니야.",
-      "그래서 양자 컴퓨터는 '전부 계산하고 전부 읽는' 기계가 아니야. 원하는 답이 나올 확률을 키우는 게 진짜 기술이고, 그걸 양자 알고리즘이라고 해."
-    ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(4, 4)\nqc.h(0); qc.h(1)\nqc.ccx(0, 1, 3)\nqc.cx(0, 2)\nqc.cx(1, 2)\nqc.measure([0, 1, 2, 3], [0, 1, 2, 3])\n\n# TODO: shots를 1로 바꿔서 몇 번 실행해 보자\nshots = 100\n\ncounts = sim.run(transpile(qc, sim), shots=shots).result().get_counts()\nprint(f'{shots}번 재서 나온 결과 종류:', len(counts))\nprint(counts)\n",
-    "hints": [
-      "shots 값 하나만 바꾸면 돼.",
-      "shots = 1 로 바꾸고 여러 번 실행해 봐. 매번 다른 하나가 나올 거야.",
-      "정답: shots = 1. 결과가 한 종류만 나오면 성공이야."
-    ],
-    "check": {
-      "type": "counts_total_min_max",
-      "min": 1,
-      "max": 1,
-      "message": "한 번만 재야 해요. shots를 1로 바꿔 보세요."
-    },
-    "docs": [],
-    "reflection": "3주 동안 배운 것 중에 가장 뜻밖이었던 건 뭐야? 왜 그렇게 느꼈는지도 써 줘.",
-    "solution": {
-      "code": "shots = 1",
-      "explanation": "한 번 재면 네 가지 중 하나만 나온다. 다시 실행하면 또 다른 하나가 나온다. 회로 안에서는 네 계산이 동시에 있었지만, 읽는 순간 하나로 정해지기 때문이다. 그래서 양자 컴퓨터가 빠른 이유는 '한 번에 다 계산해서'가 아니다. 쇼어나 그로버 같은 알고리즘은 간섭을 이용해서 원하는 답의 확률만 크게 키우고 나머지는 상쇄시킨다. 우리가 2주차에서 본 H-Z-H 간섭이 바로 그 도구다. 3주 동안 배운 것들이 거기서 만난다."
-    }
+    "extra": null
   }
 ]
