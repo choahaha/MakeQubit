@@ -83,8 +83,13 @@
         </div>
 
         <div id="solution-block" class="hidden">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-primary mb-2">해설</h2>
-          <div class="bg-primary-soft border border-primary/20 rounded-xl p-3.5 space-y-2.5">
+          <button id="solution-toggle" type="button"
+            class="w-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider
+                   text-primary hover:text-primary-dark transition">
+            <span class="material-icons-round text-base transition-transform">chevron_right</span>
+            해설
+          </button>
+          <div id="solution-body" class="hidden mt-2 bg-primary-soft border border-primary/20 rounded-xl p-3.5 space-y-2.5">
             <pre id="solution-code"
                  class="hidden text-[12.5px] leading-relaxed font-code text-slate-800
                         bg-white/70 rounded-lg px-3 py-2 overflow-x-auto"></pre>
@@ -93,11 +98,18 @@
         </div>
 
         <div id="extra-block" class="hidden">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">더 해보기</h2>
-          <p id="extra-text"
-             class="text-sm leading-relaxed text-slate-600 bg-slate-100/70 border border-slate-200
-                    rounded-xl px-3.5 py-3"></p>
-          <p class="mt-1.5 text-[11px] text-slate-400">정답은 없어. 다 끝났으면 해 봐도 좋아.</p>
+          <button id="extra-toggle" type="button"
+            class="w-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider
+                   text-slate-500 hover:text-slate-700 transition">
+            <span class="material-icons-round text-base transition-transform">chevron_right</span>
+            더 해보기
+          </button>
+          <div id="extra-body" class="hidden mt-2">
+            <p id="extra-text"
+               class="text-sm leading-relaxed text-slate-600 bg-slate-100/70 border border-slate-200
+                      rounded-xl px-3.5 py-3"></p>
+            <p class="mt-1.5 text-[11px] text-slate-400">정답은 없어. 다 끝났으면 해 봐도 좋아.</p>
+          </div>
         </div>
 
         <div id="docs-block" class="hidden">

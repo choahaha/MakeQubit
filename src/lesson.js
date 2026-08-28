@@ -74,6 +74,11 @@ function renderLessonInfo() {
     document.getElementById('extra-block').classList.remove('hidden');
   }
 
+  // 해설과 더 해보기는 접어 둔다. 왼쪽 패널은 '지금 할 일'이 먼저 보여야
+  // 하는데, 긴 글이 펼쳐져 있으면 목표와 개념이 밀려난다.
+  bindPanelToggle('solution-toggle', 'solution-body');
+  bindPanelToggle('extra-toggle', 'extra-body');
+
   if (lesson.docs?.length) {
     document.getElementById('docs-block').classList.remove('hidden');
     const docsList = document.getElementById('docs-list');
@@ -547,6 +552,18 @@ async function goNextFromDone() {
     return;
   }
   goToSession(sessionIndex + 1);
+}
+
+/** 접었다 펴는 패널. 기본은 접힘. */
+function bindPanelToggle(buttonId, bodyId) {
+  const button = document.getElementById(buttonId);
+  const body = document.getElementById(bodyId);
+  if (!button || !body) return;
+  const caret = button.querySelector('.material-icons-round');
+  button.addEventListener('click', () => {
+    const open = body.classList.toggle('hidden') === false;
+    caret.style.transform = open ? 'rotate(90deg)' : '';
+  });
 }
 
 /** 제출 후에만 해설을 연다. 그 전에 보이면 문제해결 과정이 사라진다. */
