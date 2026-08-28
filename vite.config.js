@@ -15,20 +15,31 @@ function forbidSecretKeys() {
     name: 'makequbit-forbid-secret-keys',
     config(_config, { mode }) {
       const env = loadEnv(mode, process.cwd(), 'VITE_');
+      const bad = [];
       for (const [name, value] of Object.entries(env)) {
         if (!value) continue;
         const role = jwtRole(value);
-        const bad = value.startsWith('sb_secret_') || role === 'service_role';
-        if (bad) {
-          throw new Error(
-            `${name}에 비밀 키가 들어 있습니다 (${role || 'sb_secret_'}). ` +
-            'VITE_ 로 시작하는 값은 브라우저에 그대로 공개됩니다. ' +
-            'anon 키나 sb_publishable_ 키를 넣으세요.'
-          );
+        if (value.startsWith('sb_secret_') || role === 'service_role') {
+          bad.push(`  ${name} = ${fingerprint(value)}  (${role || 'sb_secret_'})`);
         }
+      }
+      if (bad.length) {
+        throw new Error(
+          '비밀 키가 브라우저에 공개되는 자리에 들어 있습니다:\n' +
+          bad.join('\n') + '\n\n' +
+          'VITE_ 로 시작하는 값은 빌드된 자바스크립트에 그대로 박힙니다.\n' +
+          'anon 키(role=anon) 또는 sb_publishable_ 키를 넣으세요.\n' +
+          'Vercel은 Production / Preview / Development 환경마다 값을 따로 저장합니다 — ' +
+          '세 곳을 모두 확인하세요.'
+        );
       }
     },
   };
+}
+
+/** 값을 노출하지 않으면서 어느 값인지 알아볼 수 있을 만큼만 보여준다. */
+function fingerprint(value) {
+  return `${value.slice(0, 8)}…${value.slice(-6)} (${value.length}자)`;
 }
 
 /** JWT라면 role 클레임을, 아니면 null. */
