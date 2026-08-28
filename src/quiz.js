@@ -31,6 +31,51 @@ const TYPE_STYLE = {
   '오류 수정': 'bg-red-50 text-accent-red',
 };
 
+/* ===================== 진행 표시 ===================== */
+
+/**
+ * 시작 화면의 트랙을 그린다. 문항 유형이 곧 안내문이 된다 —
+ * '회로를 읽는 문제, 결과를 예상하는 문제...'를 문장으로 읽히는 대신 보여준다.
+ */
+function renderTrack() {
+  const host = document.getElementById('intro-track');
+  host.innerHTML = '';
+
+  // 레일은 첫 점 중심에서 마지막 점 중심까지만. 문항 수가 달라져도
+  // 맞도록 칸 절반만큼 좌우를 들여 놓는다.
+  const inset = 50 / set.items.length;
+  const rail = document.querySelector('.track-rail');
+  rail.style.left = `${inset}%`;
+  rail.style.right = `${inset}%`;
+  set.items.forEach((item, i) => {
+    const stop = el('div', 'track-stop text-center', null);
+    stop.style.width = `${100 / set.items.length}%`;
+
+    const dot = el('b',
+      'track-dot w-7 h-7 rounded-full grid place-items-center mx-auto mb-2 '
+      + 'bg-white border-2 border-slate-200 font-code text-xs text-slate-400',
+      String(i + 1));
+    stop.appendChild(dot);
+    stop.appendChild(el('span', 'track-label block text-[11.5px] text-slate-600 opacity-0', item.type));
+    host.appendChild(stop);
+  });
+}
+
+/** 헤더의 진행 점. 시작 화면의 트랙과 같은 언어를 쓴다. */
+function renderSteps(allDone = false) {
+  const host = document.getElementById('quiz-steps');
+  host.innerHTML = '';
+  set.items.forEach((item, i) => {
+    const done = allDone || i < index;
+    const now = !allDone && i === index;
+    const dot = el('span',
+      `h-2 rounded-full transition-all ${now ? 'w-5 bg-primary' : 'w-2 '}`
+      + (now ? '' : done ? 'bg-primary/50' : 'bg-slate-200'));
+    dot.title = `${i + 1}. ${item.type}`;
+    host.appendChild(dot);
+  });
+}
+
 /* ===================== 문항 ===================== */
 
 function renderItem() {
@@ -38,8 +83,7 @@ function renderItem() {
   answered = false;
   shownAt = Date.now();
 
-  document.getElementById('quiz-progress').textContent =
-    `${index + 1} / ${set.items.length}`;
+  renderSteps();
 
   const host = document.getElementById('item');
   host.innerHTML = '';
@@ -157,7 +201,7 @@ function askReflection() {
     return;
   }
   document.getElementById('item').classList.add('hidden');
-  document.getElementById('quiz-progress').textContent = '';
+  renderSteps(true);
   document.getElementById('reflect-prompt').textContent = set.reflection;
   document.getElementById('reflect').classList.remove('hidden');
   document.getElementById('reflect-answer').focus();
@@ -182,7 +226,7 @@ async function submitReflection(skipped) {
 
 function finish() {
   document.getElementById('item').classList.add('hidden');
-  document.getElementById('quiz-progress').textContent = '';
+  renderSteps(true);
   const score = results.filter((r) => r.correct).length;
 
   document.getElementById('done-score').textContent =
@@ -215,8 +259,9 @@ function finish() {
 /* ===================== 초기화 ===================== */
 
 document.getElementById('quiz-meta').textContent = `${week}주 ${session}차시`;
+document.getElementById('intro-meta').textContent =
+  `${week}주차 ${session}차시 · ${set.items.length}문제`;
 document.getElementById('quiz-title').textContent = `형성평가 · ${set.title}`;
-document.getElementById('intro-title').textContent = `${week}주차 ${session}차시 형성평가`;
 document.getElementById('participant-chip').textContent = participant.code;
 
 document.getElementById('btn-start').addEventListener('click', () => {
@@ -228,5 +273,10 @@ document.getElementById('btn-start').addEventListener('click', () => {
 document.getElementById('reflect-skip').addEventListener('click', () => submitReflection(true));
 document.getElementById('reflect-submit').addEventListener('click', () => submitReflection(false));
 
-document.getElementById('intro').classList.remove('hidden');
+renderTrack();
+const intro = document.getElementById('intro');
+intro.classList.remove('hidden');
+// 클래스를 붙이는 순간 트랙이 차오르기 시작한다. 화면이 그려진 다음에 붙인다.
+requestAnimationFrame(() => intro.classList.add('track-play'));
+
 document.body.classList.add('ready');

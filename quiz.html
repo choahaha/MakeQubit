@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <span id="quiz-progress" class="text-[11px] font-mono text-slate-500"></span>
+      <div id="quiz-steps" class="flex items-center gap-1.5"></div>
       <span id="participant-chip" class="text-xs font-mono bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full"></span>
     </div>
   </header>
@@ -35,17 +35,19 @@
   <main class="flex-1 px-6 py-8 max-w-2xl w-full mx-auto">
 
     <div id="intro" class="hidden">
-      <h2 id="intro-title" class="text-2xl font-extrabold tracking-tight"></h2>
-      <p class="mt-3 text-slate-600 leading-relaxed">
-        이번 차시에서 배운 걸 확인하는 문제야. 회로를 읽는 문제, 결과를 예상하는 문제,
-        잘못된 코드를 찾는 문제 세 개가 나와.
-      </p>
-      <p class="mt-2 text-sm text-slate-500 leading-relaxed">
-        점수는 성적에 안 들어가. 틀려도 괜찮으니 왜 그렇게 생각했는지에 집중해 봐.
-        고르면 바로 답과 설명이 나와.
-      </p>
+      <p id="intro-meta" class="text-[11px] font-bold uppercase tracking-wider text-primary"></p>
+      <h2 class="mt-1.5 text-2xl font-extrabold tracking-tight">배운 걸 확인해 보자</h2>
+
+      <div class="mt-7 relative px-1">
+        <div class="track-rail absolute top-[13px] h-0.5 bg-slate-200 rounded-full"></div>
+        <div id="intro-track" class="relative flex justify-between"></div>
+      </div>
+
+      <p class="mt-7 text-sm text-slate-600">고르면 바로 답과 설명이 나와.</p>
+
       <button id="btn-start"
-        class="mt-6 bg-primary hover:bg-primary-dark text-white font-bold px-6 py-3 rounded-xl transition-colors flex items-center gap-2">
+        class="track-cta opacity-0 mt-4 bg-primary hover:bg-primary-dark text-white font-bold
+               px-6 py-3 rounded-xl transition-colors flex items-center gap-2">
         <span class="material-icons-round text-lg">play_arrow</span> 시작하기
       </button>
     </div>
