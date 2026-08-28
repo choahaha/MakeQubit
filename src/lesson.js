@@ -354,7 +354,7 @@ async function run() {
   if (result.status !== 'success') {
     const error = result.error || {};
     editor.markError(error.line);
-    renderStatus('error', errorTitle(error), errorDetail(error));
+    renderStatus('error', errorTitle(error), errorDetail(error, code));
   } else {
     const outcome = checkLesson(lesson, result);
     if (outcome.passed) {
@@ -428,7 +428,7 @@ const ERROR_HINTS = [
    '이름을 아직 만들지 않았거나 import를 빠뜨렸을 수 있어요. 위쪽 import 줄을 확인해 보세요.'],
   [/missing .* required positional argument/i,
    '괄호 안에 넣어야 할 값이 빠졌어요. 예를 들어 qc.measure는 값이 두 개 필요해요.'],
-  [/unexpected indent|expected an indented block/i,
+  [/unexpected indent|expected an indented block|unindent does not match/i,
    '줄 앞의 빈칸(들여쓰기)이 어긋났어요. 앞의 빈칸을 지우거나 맞춰 보세요.'],
   [/was never closed|invalid syntax/i,
    '괄호를 닫았는지, 따옴표가 짝이 맞는지 확인해 보세요.'],
@@ -440,12 +440,61 @@ function friendlyHint(error) {
   return match ? match[1] : null;
 }
 
-function errorDetail(error) {
+/**
+ * 들여쓰기 오류를 몇 칸이 어긋났는지까지 짚어 준다.
+ *
+ * 화면으로는 두 칸 차이가 거의 안 보인다. for 문 안에서 코드를 쓰는
+ * 레슨(L24, L26, L28)에서 특히 자주 걸리는데, '들여쓰기가 어긋났어요'
+ * 만으로는 학생이 어디를 몇 칸 고쳐야 하는지 알 수 없다.
+ *
+ * 판정 실패 문구와 달리 여기서는 원인을 짚어도 된다 — 파이썬 문법이지
+ * 이 수업에서 배우는 양자 개념이 아니다. 여기서 막혀 있는 시간은
+ * 데이터가 아니라 낭비다.
+ */
+function indentHint(error, code) {
+  if (!error.line || !code) return null;
+  const lines = code.split('\n');
+  const current = lines[error.line - 1];
+  if (current === undefined || !current.trim()) return null;
+
+  // 바로 위의 내용이 있는 줄과 비교한다. 빈 줄은 들여쓰기를 정하지 않는다.
+  let previous = null;
+  for (let i = error.line - 2; i >= 0; i -= 1) {
+    if (lines[i].trim()) { previous = lines[i]; break; }
+  }
+  if (previous === null) return null;
+
+  const indentOf = (line) => line.match(/^[ \t]*/)[0].replace(/\t/g, '    ').length;
+  const here = indentOf(current);
+  const above = indentOf(previous);
+  const opensBlock = /:\s*(#.*)?$/.test(previous);
+
+  if (opensBlock) {
+    if (here <= above) {
+      return `${error.line}번 줄은 위 줄(${error.line - 1}번 근처)보다 안쪽으로 들어가야 해요. `
+             + '앞에 빈칸 4개를 넣어 보세요.';
+    }
+    return null;
+  }
+  if (here > above) {
+    const extra = here - above;
+    return `${error.line}번 줄이 위 줄보다 ${extra}칸 더 들어가 있어요. `
+           + `앞의 빈칸 ${extra}개를 지우면 돼요.`;
+  }
+  if (here < above) {
+    return `${error.line}번 줄이 위 줄보다 ${above - here}칸 덜 들어가 있어요. `
+           + '같은 블록 안의 줄은 앞 빈칸 수가 같아야 해요.';
+  }
+  return null;
+}
+
+function errorDetail(error, code) {
   const parts = [];
   if (error.line) parts.push(`${error.line}번 줄`);
   if (error.source_line) parts.push(`${error.source_line.trim()}`);
   const where = parts.length ? `${parts.join(' — ')}\n` : '';
-  const hint = friendlyHint(error);
+  // 칸 수까지 셀 수 있으면 그쪽이 낫다. 일반 문구는 '어딘가 어긋났다'까지만 말한다.
+  const hint = indentHint(error, code) || friendlyHint(error);
   return `${where}${error.message}${hint ? `\n\n${hint}` : ''}`;
 }
 
