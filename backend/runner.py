@@ -220,6 +220,28 @@ def shutdown_pool():
             return
 
 
+def diagnose():
+    """What a student's forked process sees. For debugging a deployment only."""
+    worker = _acquire_worker()
+    if worker is None:
+        return {"error": "no worker"}
+    with tempfile.TemporaryDirectory(prefix="makequbit-diag-") as workdir:
+        result_file = os.path.join(workdir, "result.json")
+        job = {"diag": True, "workdir": workdir,
+               "code_file": "", "result_file": result_file}
+        try:
+            worker.run(job, WALL_TIMEOUT_SECONDS)
+        except Exception as exc:
+            _release_worker(worker, healthy=False)
+            return {"error": f"{type(exc).__name__}: {exc}"}
+        _release_worker(worker, healthy=True)
+        try:
+            return json.loads(Path(result_file).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            return {"error": f"no result: {exc}",
+                    "stderr": _read_stderr(workdir)[-1000:]}
+
+
 # --- running -----------------------------------------------------------------
 
 def run_code(code: str) -> dict:

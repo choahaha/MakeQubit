@@ -32,6 +32,53 @@ import sys
 import sandbox_child as child
 
 
+def _diagnose(result_file):
+    """Report what a student's process actually sees. Same fork, same limits —
+    this is a probe of the real execution site, not of the worker."""
+    import resource
+    import traceback
+
+    child.apply_limits()
+    info = {}
+    for name in ("RLIMIT_CPU", "RLIMIT_AS", "RLIMIT_NPROC", "RLIMIT_FSIZE"):
+        try:
+            info[name] = resource.getrlimit(getattr(resource, name))
+        except Exception as exc:
+            info[name] = f"?: {exc}"
+
+    for path, key in (("/proc/self/status", "status"),
+                      ("/sys/fs/cgroup/pids.max", "cgroup_pids_max"),
+                      ("/sys/fs/cgroup/pids.current", "cgroup_pids_current"),
+                      ("/sys/fs/cgroup/memory.max", "cgroup_memory_max")):
+        try:
+            with open(path) as fh:
+                text = fh.read()
+            if key == "status":
+                info[key] = {k: v.strip() for k, v in
+                             (l.split(":", 1) for l in text.splitlines() if ":" in l)
+                             if k in ("Threads", "VmSize", "VmRSS")}
+            else:
+                info[key] = text.strip()
+        except Exception as exc:
+            info[key] = f"?: {exc}"
+
+    # The failing call itself, with the real traceback.
+    try:
+        from qiskit import QuantumCircuit, transpile
+        from qiskit_aer import AerSimulator
+        qc = QuantumCircuit(1, 1)
+        qc.h(0)
+        qc.measure(0, 0)
+        sim = AerSimulator()
+        info["aer"] = str(sim.run(transpile(qc, sim), shots=8).result().get_counts())
+    except BaseException:
+        info["aer"] = "FAILED"
+        info["aer_traceback"] = traceback.format_exc()[-1500:]
+
+    with open(result_file, "w", encoding="utf-8") as fh:
+        json.dump(info, fh, ensure_ascii=False)
+
+
 def _run_student(job):
     """Inside the forked grandchild. Never returns."""
     try:
@@ -56,6 +103,10 @@ def _run_student(job):
         os.dup2(log, 1)
         os.dup2(log, 2)
         os.close(log)
+
+        if job.get("diag"):
+            _diagnose(job["result_file"])
+            os._exit(0)
 
         with open(job["code_file"], encoding="utf-8") as fh:
             code = fh.read()

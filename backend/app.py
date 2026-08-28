@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent / ".env")
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header as FHeader, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -119,6 +119,14 @@ def limits():
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/api/diag")
+def diag(x_admin_token: str | None = FHeader(None)):
+    """배포 환경에서만 드러나는 문제를 잡기 위한 진단. 관리자 토큰이 필요하다."""
+    from admin import _require_auth
+    _require_auth(x_admin_token)
+    return runner.diagnose()
 
 
 @app.on_event("startup")
