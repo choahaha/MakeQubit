@@ -111,6 +111,20 @@ function renderResume() {
 
 /* ===================== 차시별 목록 ===================== */
 
+/** 차시 주제 이름. 형성평가 세트가 이미 갖고 있어서 그대로 쓴다. */
+function sessionTitle(week, session) {
+  const set = assessments.find((a) => a.week === week && a.session === session);
+  return set ? set.title : '';
+}
+
+/**
+ * 차시를 접어 둔다.
+ *
+ * 31개 레슨을 다 펼치면 3.7화면이라 지금 할 것이 어디 있는지 안 보인다.
+ * 기본은 '다음에 할 레슨이 있는 차시' 하나만 열고 나머지는 제목 줄만 둔다.
+ * 여러 개를 동시에 열 수 있게 두는 이유는, 지난 차시를 참고하며 이번 걸
+ * 하려는 경우를 막을 이유가 없어서다.
+ */
 function renderSessions() {
   const host = document.getElementById('sessions');
   host.innerHTML = '';
@@ -122,34 +136,87 @@ function renderSessions() {
     groups.get(key).push({ lesson, index });
   });
 
+  // 처음 열어 둘 차시 — 아직 안 끝낸 첫 레슨이 있는 곳
+  const nextLesson = lessons.find((l) => {
+    const status = statusOf(l.id);
+    return status !== 'submitted' && status !== 'passed';
+  });
+  const hashed = window.location.hash.match(/^#w(\d+)s(\d+)$/);
+  const openKey = hashed
+    ? `${hashed[1]}-${hashed[2]}`
+    : nextLesson ? `${nextLesson.week}-${nextLesson.session}` : null;
+
+  let lastWeek = null;
   for (const [key, items] of groups) {
-    const [week, session] = key.split('-');
-    const block = el('section');
+    const [week, session] = key.split('-').map(Number);
 
-    const header = el('div', 'flex items-baseline gap-3 mb-3 pb-2 border-b border-slate-200');
-    header.appendChild(el('h2', 'font-extrabold text-lg', `${week}주차 ${session}차시`));
-    header.appendChild(el('span', 'text-xs text-slate-500', `레슨 ${items.length}개 · 50분`));
-
-    const done = items.filter(({ lesson }) => statusOf(lesson.id) !== 'todo').length;
-    if (done) {
-      header.appendChild(el('span', 'ml-auto text-xs font-mono text-slate-500',
-        `${done}/${items.length}`));
+    if (week !== lastWeek) {
+      lastWeek = week;
+      host.appendChild(el('h2',
+        'text-xs font-bold uppercase tracking-[0.12em] text-slate-400 pt-3 first:pt-0',
+        `${week}주차`));
     }
-    block.appendChild(header);
-
-    const list = el('div', 'space-y-2');
-    for (const { lesson, index } of items) {
-      list.appendChild(lessonCard(lesson, index));
-    }
-
-    // 차시 끝의 형성평가. 그 차시 레슨을 하나도 안 했으면 잠가 둔다 —
-    // 배우기 전에 풀면 형성평가가 아니라 사전검사가 된다.
-    const quiz = quizCard(Number(week), Number(session), items);
-    if (quiz) list.appendChild(quiz);
-
-    block.appendChild(list);
-    host.appendChild(block);
+    host.appendChild(sessionBlock(week, session, items, key === openKey));
   }
+}
+
+function sessionBlock(week, session, items, open) {
+  const block = el('section', 'bg-white border border-slate-200 rounded-xl overflow-hidden');
+
+  const done = items.filter(({ lesson }) => {
+    const status = statusOf(lesson.id);
+    return status === 'submitted' || status === 'passed';
+  }).length;
+  const quiz = getQuizProgress(week, session);
+
+  const head = el('button',
+    'w-full flex items-center gap-3.5 px-5 py-4 text-left transition hover:bg-slate-50');
+  head.type = 'button';
+  head.setAttribute('aria-expanded', String(open));
+
+  const caret = el('span', 'shrink-0 text-slate-400 transition-transform');
+  caret.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none">'
+    + '<path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" '
+    + 'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  if (open) caret.style.transform = 'rotate(90deg)';
+  head.appendChild(caret);
+
+  const label = el('div', 'min-w-0 flex-1 flex flex-col gap-1');
+  const line = el('div', 'flex items-baseline gap-2.5 flex-wrap');
+  line.appendChild(el('span', 'font-bold text-[15px]', `${session}차시`));
+  line.appendChild(el('span', 'text-[15px] text-slate-500', sessionTitle(week, session)));
+  label.appendChild(line);
+  label.appendChild(el('span', 'text-[12.5px] text-slate-400',
+    `레슨 ${items.length}개 · 50분`));
+  head.appendChild(label);
+
+  const meta = el('div', 'ml-auto flex items-center gap-4 shrink-0');
+  if (quiz) {
+    meta.appendChild(el('span',
+      'text-[11px] font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700',
+      `형성평가 ${quiz.score}/${quiz.total}`));
+  }
+  meta.appendChild(el('span',
+    `font-code text-[13px] ${done ? 'text-primary font-semibold' : 'text-slate-400'}`,
+    `${done} / ${items.length}`));
+  head.appendChild(meta);
+
+  const body = el('div', 'px-4 pb-4 flex flex-col gap-1.5');
+  if (!open) body.classList.add('hidden');
+  for (const { lesson, index } of items) body.appendChild(lessonCard(lesson, index));
+  const quizRow = quizCard(week, session, items);
+  if (quizRow) body.appendChild(quizRow);
+
+  head.addEventListener('click', () => {
+    const nowOpen = body.classList.toggle('hidden') === false;
+    head.setAttribute('aria-expanded', String(nowOpen));
+    caret.style.transform = nowOpen ? 'rotate(90deg)' : '';
+    logEvent('session_toggle', { week, session, opened: nowOpen });
+  });
+
+  block.appendChild(head);
+  block.appendChild(body);
+  return block;
 }
 
 function lessonCard(lesson, index) {
