@@ -488,7 +488,12 @@ async function confirmSubmit() {
     context,
   });
 
-  updateProgress(lesson.id, { submitted: submissionIndex, passed });
+  updateProgress(lesson.id, {
+    submitted: submissionIndex,
+    passed,
+    hints: hintsShown,
+    seconds: context.secondsOnLesson,
+  });
   renderProgressDots();
   // 상태 카드가 '준비되면 제출하기를 눌러'로 남아 있으면 방금 한 일과 어긋난다.
   if (passed) {
@@ -716,6 +721,13 @@ function bindControls() {
   });
 
   window.addEventListener('pagehide', () => {
+    // 제출까지 안 간 학생의 지표는 여기서 들어온다.
+    if (runIndex > 0) {
+      updateProgress(lesson.id, {
+        hints: hintsShown,
+        seconds: Math.round((Date.now() - openedAt) / 1000),
+      });
+    }
     logEvent('lesson_leave', {
       seconds_on_lesson: Math.round((Date.now() - openedAt) / 1000),
       runs: runIndex,
