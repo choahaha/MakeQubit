@@ -15,6 +15,7 @@ import builtins
 import contextlib
 import io
 import json
+import os
 import resource
 import sys
 import time
@@ -22,7 +23,17 @@ import traceback
 
 # --- limits (seconds / bytes) ------------------------------------------------
 CPU_SECONDS = 5          # hard CPU ceiling; wall-clock timeout lives in runner.py
-MEMORY_BYTES = 512 * 1024 * 1024
+
+# Headroom the student's program gets *on top of* whatever the interpreter is
+# already holding. It must not be an absolute ceiling: by the time limits are
+# applied, qiskit, qiskit_aer, numpy and BLAS have reserved a large virtual
+# address space, and an absolute 512MB left so little room that `[0] * 100000`
+# raised MemoryError on Linux. (macOS ignores RLIMIT_AS, so this only ever
+# showed up once deployed.) The curriculum tops out at 12 qubits — 4096
+# amplitudes — so the headroom is about catching runaway allocations, not about
+# fitting the simulator.
+STUDENT_MEMORY_BYTES = 256 * 1024 * 1024
+MEMORY_BYTES = 512 * 1024 * 1024   # fallback when the baseline is unreadable
 MAX_FILE_BYTES = 8 * 1024 * 1024
 MAX_PROCESSES = 64       # qiskit/numpy spawn threads; too low breaks imports
 MAX_OUTPUT_CHARS = 20_000
@@ -69,11 +80,24 @@ REMOVED_BUILTINS = {
 }
 
 
+def _address_space_in_use():
+    """Virtual size this process already holds, in bytes. 0 if unknown."""
+    try:
+        with open("/proc/self/statm") as fh:
+            pages = int(fh.read().split()[0])
+        return pages * os.sysconf("SC_PAGE_SIZE")
+    except (OSError, ValueError, IndexError, AttributeError):
+        return 0   # macOS and friends: RLIMIT_AS is not enforced there anyway
+
+
 def apply_limits():
     """Best-effort rlimits. Some are unavailable or partial on macOS."""
+    baseline = _address_space_in_use()
+    as_limit = baseline + STUDENT_MEMORY_BYTES if baseline else MEMORY_BYTES
+
     for res, value in (
         (resource.RLIMIT_CPU, CPU_SECONDS),
-        (resource.RLIMIT_AS, MEMORY_BYTES),
+        (resource.RLIMIT_AS, as_limit),
         (resource.RLIMIT_FSIZE, MAX_FILE_BYTES),
         (resource.RLIMIT_NPROC, MAX_PROCESSES),
         (resource.RLIMIT_CORE, 0),
