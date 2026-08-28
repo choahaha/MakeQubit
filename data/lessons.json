@@ -429,7 +429,7 @@
       "H로 중첩을 만든 뒤 CX를 걸면, 두 큐비트가 서로 묶여 버려. 이걸 얽힘(entanglement)이라고 해.",
       "얽히면 00과 11만 나오고 01, 10은 아예 안 나와. 한쪽을 재는 순간 다른 쪽도 정해지는 거야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 두 줄을 써 보자\n#  1) 0번 큐비트에 H를 걸어 중첩으로 만든다\n#  2) 0번을 control, 1번을 target으로 CX를 건다\n# 힌트: qc.h(번호) / qc.cx(control, target)\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 00과 11만 나오도록 회로를 만들자\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
     "hints": [
       "0번을 먼저 중첩으로 만들어야 CX를 걸 의미가 있어. H 게이트를 쓰면 돼.",
       "qc.h(0) 을 쓰고, 그다음 줄에 qc.cx(0, 1) 을 써 봐.",
@@ -839,7 +839,7 @@
       "CX를 빈 큐비트에 두 번 걸면 바로 XOR이 돼. 첫 CX가 A를 적고, 둘째 CX가 B를 더해서 뒤집기 때문이야.",
       "입력 A와 B는 그대로 남고, 답은 따로 둔 큐비트에 적힌다. 앞 레슨에서 말한 그 모양이야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# q0 = A, q1 = B, q2 = 답을 적을 자리\nqc = QuantumCircuit(3, 1)\n\nqc.x(0)      # A = 1\nqc.x(1)      # B = 1\n\n# TODO: q2에 A와 B를 차례로 더하자 (CX 두 개)\n# 힌트: qc.cx(0, 2) 와 qc.cx(1, 2)\n\n\nqc.measure(2, 0)\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint('1 XOR 1 =', counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# q0 = A, q1 = B, q2 = 답을 적을 자리\nqc = QuantumCircuit(3, 1)\n\nqc.x(0)      # A = 1\nqc.x(1)      # B = 1\n\n# TODO: A와 B의 XOR을 q2에 만들자\n\n\nqc.measure(2, 0)\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint('1 XOR 1 =', counts)\n",
     "hints": [
       "A를 먼저 답 자리에 적고, 그다음 B를 더하는 순서야.",
       "qc.cx(0, 2) 와 qc.cx(1, 2) 를 한 줄씩.",
@@ -930,7 +930,7 @@
       "그게 바로 AND야. 둘 다 1일 때만 1이 되니까.",
       "이 게이트를 토폴리(Toffoli)라고도 불러. 고전 컴퓨터의 모든 계산을 되돌릴 수 있게 만들어 주는 게이트야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# q0 = A, q1 = B, q2 = 답을 적을 자리\nqc = QuantumCircuit(3, 1)\n\nqc.x(0)      # A = 1\nqc.x(1)      # B = 1\n\n# TODO: A와 B가 둘 다 1일 때만 q2를 뒤집자\n# 힌트: qc.ccx(control1, control2, target)\n\n\nqc.measure(2, 0)\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint('1 AND 1 =', counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# q0 = A, q1 = B, q2 = 답을 적을 자리\nqc = QuantumCircuit(3, 1)\n\nqc.x(0)      # A = 1\nqc.x(1)      # B = 1\n\n# TODO: A와 B가 둘 다 1일 때만 q2를 뒤집자\n\n\nqc.measure(2, 0)\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint('1 AND 1 =', counts)\n",
     "hints": [
       "control 두 개를 먼저 쓰고 target을 마지막에 써.",
       "qc.ccx(0, 1, 2) 를 TODO 아래에 넣어 봐.",
@@ -984,7 +984,7 @@
       "파이썬 함수로 묶으면 이름만 불러서 쓸 수 있어. 회로 조각에 이름을 붙이는 거야.",
       "def 이름(qc, 큐비트들): 안에 게이트를 넣으면 돼. 3주차 나머지는 이 방식으로 조립한다."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\ndef half_adder(qc, a, b, s, c):\n    \"\"\"a와 b를 더해 s에 합, c에 자리올림을 적는다.\"\"\"\n    # TODO: 반가산기 세 줄을 여기에 넣자\n    # 힌트: ccx(a, b, c) 하나와 cx(a, s), cx(b, s)\n\n\n\n\nprint('A B | carry sum')\nfor A in (0, 1):\n    for B in (0, 1):\n        qc = QuantumCircuit(4, 2)\n        if A: qc.x(0)\n        if B: qc.x(1)\n        half_adder(qc, 0, 1, 2, 3)      # 이름만 불러서 쓴다\n        qc.measure([2, 3], [0, 1])\n        k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n        print(f'{A} {B} |   {k[0]}    {k[1]}')\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\ndef half_adder(qc, a, b, s, c):\n    \"\"\"a와 b를 더해 s에 합, c에 자리올림을 적는다.\"\"\"\n    # TODO: 반가산기를 여기에 넣자\n\n\n\n\nprint('A B | carry sum')\nfor A in (0, 1):\n    for B in (0, 1):\n        qc = QuantumCircuit(4, 2)\n        if A: qc.x(0)\n        if B: qc.x(1)\n        half_adder(qc, 0, 1, 2, 3)      # 이름만 불러서 쓴다\n        qc.measure([2, 3], [0, 1])\n        k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n        print(f'{A} {B} |   {k[0]}    {k[1]}')\n",
     "hints": [
       "함수 안이라 들여쓰기가 네 칸이야. qc, a, b, s, c 라는 이름을 그대로 쓰면 돼.",
       "qc.ccx(a, b, c), qc.cx(a, s), qc.cx(b, s) — 세 줄.",
@@ -1020,7 +1020,7 @@
       "합(sum)은 XOR이고, 자리올림(carry)은 AND야. 앞 두 레슨에서 만든 게 바로 이 둘이야.",
       "둘을 한 회로에 넣으면 한 자리 덧셈기가 돼. 이걸 반가산기라고 불러."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# q0 = A, q1 = B, q2 = sum, q3 = carry\nqc = QuantumCircuit(4, 2)\n\nqc.x(0)      # A = 1\nqc.x(1)      # B = 1\n\n# carry = A AND B\nqc.ccx(0, 1, 3)\n\n# TODO: sum = A XOR B 를 q2에 만들자 (CX 두 개)\n\n\nqc.measure([2, 3], [0, 1])\ncounts = sim.run(transpile(qc, sim), shots=512).result().get_counts()\nkey = list(counts)[0]\nprint(f'1 + 1 = carry {key[0]}, sum {key[1]}')\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# q0 = A, q1 = B, q2 = sum, q3 = carry\nqc = QuantumCircuit(4, 2)\n\nqc.x(0)      # A = 1\nqc.x(1)      # B = 1\n\n# carry = A AND B\nqc.ccx(0, 1, 3)\n\n# TODO: sum = A XOR B 를 q2에 만들자\n\n\nqc.measure([2, 3], [0, 1])\ncounts = sim.run(transpile(qc, sim), shots=512).result().get_counts()\nkey = list(counts)[0]\nprint(f'1 + 1 = carry {key[0]}, sum {key[1]}')\n",
     "hints": [
       "XOR 만들던 방법 그대로야. 답 자리만 q2로 바꾸면 돼.",
       "qc.cx(0, 2) 와 qc.cx(1, 2) 를 한 줄씩.",
@@ -1075,7 +1075,7 @@
       "한 자리 덧셈의 입력은 네 가지뿐이야: 0+0, 0+1, 1+0, 1+1.",
       "앞에서 배운 반복문 틀을 그대로 쓰면 돼. 회로는 그대로 두고 입력만 바꾼다."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nprint('A + B = carry sum')\nfor a in (0, 1):\n    for b in (0, 1):\n        qc = QuantumCircuit(4, 2)\n        if a: qc.x(0)\n        if b: qc.x(1)\n\n        # TODO: 반가산기를 넣자 (carry용 CCX 하나, sum용 CX 두 개)\n\n\n\n        qc.measure([2, 3], [0, 1])\n        k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n        print(f'{a} + {b} =   {k[0]}    {k[1]}')\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nprint('A + B = carry sum')\nfor a in (0, 1):\n    for b in (0, 1):\n        qc = QuantumCircuit(4, 2)\n        if a: qc.x(0)\n        if b: qc.x(1)\n\n        # TODO: 반가산기를 넣자 — 합은 q2, 자리올림은 q3에\n\n\n\n        qc.measure([2, 3], [0, 1])\n        k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n        print(f'{a} + {b} =   {k[0]}    {k[1]}')\n",
     "hints": [
       "앞 레슨의 세 줄을 그대로 옮기고 들여쓰기만 맞추면 돼.",
       "qc.ccx(0, 1, 3), qc.cx(0, 2), qc.cx(1, 2) — 세 줄.",
@@ -1111,7 +1111,7 @@
       "입력이 세 개(A, B, Cin)가 되는 셈이야. sum은 셋을 전부 XOR하면 되고, CX 세 개면 된다.",
       "carry는 '셋 중 둘 이상이 1이면 1'이야. 두 개씩 짝지은 AND 세 개를 겹치면 그게 나와."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# q0=A  q1=B  q2=Cin  q3=sum  q4=carry\nqc = QuantumCircuit(5, 2)\n\nqc.x(0); qc.x(1); qc.x(2)     # 1 + 1 + 1 을 계산해 보자\n\n# sum = A XOR B XOR Cin\nqc.cx(0, 3)\nqc.cx(1, 3)\nqc.cx(2, 3)\n\n# TODO: carry를 만들자 — 두 개씩 짝지은 CCX 세 개\n# 힌트: (0,1), (0,2), (1,2) 를 각각 q4로\n\n\n\nqc.measure([3, 4], [0, 1])\ncounts = sim.run(transpile(qc, sim), shots=256).result().get_counts()\nk = list(counts)[0]\nprint(f'1 + 1 + 1 = carry {k[0]}, sum {k[1]}')\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# q0=A  q1=B  q2=Cin  q3=sum  q4=carry\nqc = QuantumCircuit(5, 2)\n\nqc.x(0); qc.x(1); qc.x(2)     # 1 + 1 + 1 을 계산해 보자\n\n# sum = A XOR B XOR Cin\nqc.cx(0, 3)\nqc.cx(1, 3)\nqc.cx(2, 3)\n\n# TODO: carry를 q4에 만들자 — A, B, Cin 중 둘 이상이 1이면 carry는 1이다\n\n\n\nqc.measure([3, 4], [0, 1])\ncounts = sim.run(transpile(qc, sim), shots=256).result().get_counts()\nk = list(counts)[0]\nprint(f'1 + 1 + 1 = carry {k[0]}, sum {k[1]}')\n",
     "hints": [
       "세 줄 모두 target은 q4로 같아. control 짝만 바꾸면 돼.",
       "qc.ccx(0, 1, 4), qc.ccx(0, 2, 4), qc.ccx(1, 2, 4) — 세 줄.",
@@ -1176,7 +1176,7 @@
       "2의 자리는 1의 자리에서 올라온 carry를 받아야 하니까 전가산기를 써야 해.",
       "새로 배울 게이트는 없어. 앞에서 만든 두 블록을 순서대로 연결하는 게 전부야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# A = a1 a0,  B = b1 b0,  답 = s2 s1 s0\n# q0=a0 q1=a1 q2=b0 q3=b1 | q4=s0 q5=c1 q6=s1 q7=s2\nqc = QuantumCircuit(8, 3)\n\nqc.x(0)              # A = 01 (1)\nqc.x(2); qc.x(3)     # B = 11 (3)\n\n# 1의 자리 — 반가산기\nqc.cx(0, 4)\nqc.cx(2, 4)\nqc.ccx(0, 2, 5)\n\n# 2의 자리 — 전가산기 (a1, b1, 그리고 올라온 c1)\n# TODO: sum을 q6에 만들자 — CX 세 개 (1번, 3번, 5번에서 각각)\n\n\n\nqc.ccx(1, 3, 7)\nqc.ccx(1, 5, 7)\nqc.ccx(3, 5, 7)\n\nqc.measure([4, 6, 7], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=256).result().get_counts()\nk = list(counts)[0]\nprint('1 + 3 =', int(k[0]) * 4 + int(k[1]) * 2 + int(k[2]))\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# A = a1 a0,  B = b1 b0,  답 = s2 s1 s0\n# q0=a0 q1=a1 q2=b0 q3=b1 | q4=s0 q5=c1 q6=s1 q7=s2\nqc = QuantumCircuit(8, 3)\n\nqc.x(0)              # A = 01 (1)\nqc.x(2); qc.x(3)     # B = 11 (3)\n\n# 1의 자리 — 반가산기\nqc.cx(0, 4)\nqc.cx(2, 4)\nqc.ccx(0, 2, 5)\n\n# 2의 자리 — 전가산기 (a1, b1, 그리고 올라온 c1)\n# TODO: sum을 q6에 만들자\n\n\n\nqc.ccx(1, 3, 7)\nqc.ccx(1, 5, 7)\nqc.ccx(3, 5, 7)\n\nqc.measure([4, 6, 7], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=256).result().get_counts()\nk = list(counts)[0]\nprint('1 + 3 =', int(k[0]) * 4 + int(k[1]) * 2 + int(k[2]))\n",
     "hints": [
       "전가산기의 sum 부분이야. 입력이 셋(q1, q3, q5)이고 답 자리는 q6야.",
       "qc.cx(1, 6), qc.cx(3, 6), qc.cx(5, 6) — 세 줄.",
