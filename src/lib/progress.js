@@ -74,3 +74,64 @@ export function updateQuizProgress(week, session, patch) {
     localStorage.setItem(QUIZ_KEY, JSON.stringify(all));
   } catch { /* 저장 못 해도 실습은 계속돼야 한다 */ }
 }
+
+/* ===================== 형성평가 진행 중 상태 ===================== */
+
+/**
+ * 푸는 도중에 나갔다 와도 이어서 풀 수 있게 한다.
+ *
+ * 답 자체는 문항마다 Supabase에 이미 저장된다. 그걸 다시 읽어오지 않고
+ * 브라우저에 따로 두는 이유는, 로그인이 없어서 RLS로 '자기 응답만 읽기'를
+ * 만들 수 없기 때문이다. select를 열면 학생이 남의 답을 다 읽을 수 있다.
+ */
+const QUIZ_STATE_KEY = 'makequbit.quizstate';
+
+function readState() {
+  try {
+    return JSON.parse(localStorage.getItem(QUIZ_STATE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function writeState(all) {
+  try {
+    localStorage.setItem(QUIZ_STATE_KEY, JSON.stringify(all));
+  } catch { /* 저장 못 해도 풀이는 계속돼야 한다 */ }
+}
+
+/**
+ * @param {number} week @param {number} session
+ * @param {string[]} itemIds 지금 문항 구성. 바뀌었으면 저장된 걸 버린다.
+ * @returns {{answers: Array<{itemId:string, picked:number, correct:boolean}>}|null}
+ */
+export function getQuizState(week, session, itemIds) {
+  const saved = readState()[`${week}-${session}`];
+  if (!saved || !Array.isArray(saved.answers)) return null;
+
+  // 문항을 고친 뒤라면 이어서 푸는 것이 의미가 없다.
+  if (saved.itemIds?.join('|') !== itemIds.join('|')) return null;
+  return saved;
+}
+
+export function saveQuizAnswer(week, session, itemIds, answer) {
+  const all = readState();
+  const key = `${week}-${session}`;
+  const current = all[key]?.itemIds?.join('|') === itemIds.join('|')
+    ? all[key]
+    : { itemIds, answers: [] };
+
+  // 같은 문항을 두 번 저장하지 않는다 (이어풀기로 되돌아온 경우)
+  if (!current.answers.some((a) => a.itemId === answer.itemId)) {
+    current.answers.push(answer);
+  }
+  current.at = new Date().toISOString();
+  all[key] = current;
+  writeState(all);
+}
+
+export function clearQuizState(week, session) {
+  const all = readState();
+  delete all[`${week}-${session}`];
+  writeState(all);
+}

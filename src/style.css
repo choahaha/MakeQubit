@@ -89,6 +89,10 @@
 @keyframes track-fill { to { transform: scaleX(1); } }
 
 .track-play .track-dot { animation: track-light 0.4s ease-out forwards; }
+/* 이어풀기로 돌아왔을 때 이미 푼 문항. 채워진 상태를 그대로 두어야 하므로
+   켜지는 애니메이션에서 뺀다. */
+.track-play .track-dot.track-done { animation: none; }
+.track-play .track-label.track-done { animation: none; opacity: 1; }
 .track-play .track-stop:nth-child(1) .track-dot { animation-delay: 0.40s; }
 .track-play .track-stop:nth-child(2) .track-dot { animation-delay: 0.75s; }
 .track-play .track-stop:nth-child(3) .track-dot { animation-delay: 1.10s; }

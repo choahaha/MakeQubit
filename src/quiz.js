@@ -2,7 +2,9 @@ import './style.css';
 import assessments from '../data/assessments.json';
 import { getParticipant } from './lib/session.js';
 import { logEvent, logAssessment, logReflection, flush } from './lib/logger.js';
-import { updateQuizProgress } from './lib/progress.js';
+import {
+  updateQuizProgress, getQuizState, saveQuizAnswer, clearQuizState,
+} from './lib/progress.js';
 
 const participant = getParticipant();
 if (!participant) window.location.replace('/');
@@ -13,10 +15,20 @@ const session = Number(params.get('session'));
 const set = assessments.find((a) => a.week === week && a.session === session);
 if (!set) window.location.replace('/lessons.html');
 
-let index = 0;
+const itemIds = set.items.map((i) => i.id);
+
+// 도중에 나갔다 온 경우 푼 데까지 이어받는다. 처음부터 다시 풀게 하면
+// 같은 문항을 두 번 답하게 되어 정답률과 소요 시간이 흐려진다.
+const restored = getQuizState(week, session, itemIds);
+const results = (restored?.answers || []).map((a) => ({
+  item: set.items.find((i) => i.id === a.itemId),
+  picked: a.picked,
+  correct: a.correct,
+})).filter((r) => r.item);
+
+let index = results.length;
 let answered = false;
 let shownAt = Date.now();
-const results = [];
 
 const el = (tag, className, text) => {
   const node = document.createElement(tag);
@@ -51,13 +63,20 @@ function renderTrack() {
     const stop = el('div', 'track-stop text-center', null);
     stop.style.width = `${100 / set.items.length}%`;
 
+    const done = i < index;
     const dot = el('b',
-      'track-dot w-9 h-9 rounded-full grid place-items-center mx-auto mb-3 '
-      + 'bg-white border-2 border-slate-200 font-code text-sm text-slate-400',
+      'track-dot w-9 h-9 rounded-full grid place-items-center mx-auto mb-3 font-code text-sm '
+      + (done
+        // 이미 푼 문항. track-done으로 애니메이션에서 빼지 않으면
+        // track-light가 '아직 안 푼' 모양으로 덮어쓴다.
+        ? 'track-done bg-primary border-2 border-primary text-white'
+        : 'bg-white border-2 border-slate-200 text-slate-400'),
       String(i + 1));
     stop.appendChild(dot);
     stop.appendChild(el('span',
-      'track-label block text-[13px] font-medium text-slate-600 opacity-0', item.type));
+      'track-label block text-[13px] font-medium text-slate-600 opacity-0'
+      + (done ? ' track-done' : ''),
+      item.type));
     host.appendChild(stop);
   });
 }
@@ -132,6 +151,7 @@ async function choose(picked) {
   const correct = picked === item.answer;
   const elapsed = Date.now() - shownAt;
   results.push({ item, picked, correct });
+  saveQuizAnswer(week, session, itemIds, { itemId: item.id, picked, correct });
 
   document.querySelectorAll('#item [data-choice]').forEach((button) => {
     const i = Number(button.dataset.choice);
@@ -250,6 +270,7 @@ function finish() {
   }
 
   updateQuizProgress(week, session, { score, total: set.items.length });
+  clearQuizState(week, session);   // 다 풀었으니 이어풀기 상태는 지운다
   document.getElementById('done').classList.remove('hidden');
   logEvent('assessment_complete', {
     week, session, score, total: set.items.length,
@@ -262,13 +283,25 @@ function finish() {
 document.getElementById('quiz-meta').textContent = `${week}주 ${session}차시`;
 document.getElementById('intro-meta').textContent =
   `${week}주차 ${session}차시 · ${set.items.length}문제`;
+
+if (index > 0 && index < set.items.length) {
+  // 이어서 푸는 화면. 몇 번부터인지 분명히 말해 준다.
+  document.querySelector('#intro h2').textContent = '이어서 풀자';
+  document.getElementById('intro-note').innerHTML =
+    `${index}번까지 풀었어. <b class="font-bold text-slate-700">${index + 1}번</b>부터 이어서 하면 돼.`;
+  document.getElementById('start-label').textContent = '이어서 풀기';
+  logEvent('assessment_resume', { week, session, answered: index });
+}
 document.getElementById('quiz-title').textContent = `형성평가 · ${set.title}`;
 document.getElementById('participant-chip').textContent = participant.code;
 
 document.getElementById('btn-start').addEventListener('click', () => {
   document.getElementById('intro').classList.add('hidden');
-  logEvent('assessment_start', { week, session, items: set.items.length });
-  renderItem();
+  logEvent('assessment_start', {
+    week, session, items: set.items.length, resumed_from: index,
+  });
+  if (index >= set.items.length) askReflection();
+  else renderItem();
 });
 
 document.getElementById('reflect-skip').addEventListener('click', () => submitReflection(true));
