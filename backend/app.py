@@ -28,17 +28,36 @@ import roster
 app = FastAPI(title="MakeQubit Execution API")
 app.include_router(admin_router)
 
+def _frontend_origins():
+    """FRONTEND_URL 하나에서 학생이 실제로 칠 수 있는 주소를 모두 만든다.
+
+    커스텀 도메인을 붙이면 makequbit.com 과 www.makequbit.com 이 둘 다 살아
+    있는데, 브라우저는 이 둘을 다른 origin으로 본다. 한쪽만 열어 두면 습관적으로
+    www를 붙인 학생만 실행이 막히고, 그 사실은 수업 중에야 드러난다.
+    """
+    configured = (os.environ.get("FRONTEND_URL") or "").strip().rstrip("/")
+    if not configured:
+        return []
+    hosts = {configured}
+    scheme, _, host = configured.partition("://")
+    if host.startswith("www."):
+        hosts.add(f"{scheme}://{host[4:]}")
+    else:
+        hosts.add(f"{scheme}://www.{host}")
+    return sorted(hosts)
+
+
 origins = [
     "http://localhost:5173",
     "http://localhost:4173",
+    *_frontend_origins(),
 ]
-if os.environ.get("FRONTEND_URL"):
-    origins.append(os.environ["FRONTEND_URL"])
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    # localhost는 포트가 유동적이라(vite가 점유된 포트를 피해 옮겨간다) 정규식으로 연다
+    # localhost는 포트가 유동적이라(vite가 점유된 포트를 피해 옮겨간다) 정규식으로 연다.
+    # vercel.app은 미리보기 배포마다 주소가 달라서 정규식이 필요하다.
     allow_origin_regex=r"^(http://localhost:\d+|https://.*\.(railway\.app|vercel\.app))$",
     allow_methods=["*"],
     allow_headers=["*"],
