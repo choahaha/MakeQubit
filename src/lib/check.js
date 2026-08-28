@@ -61,6 +61,28 @@ const CHECKERS = {
       : fail(`${spec.min}번 이상 재야 하는데 ${total}번만 쟀어요.`);
   },
 
+  /** 특정 결과가 원하는 비율로 나왔는가 (RY로 확률을 맞추는 레슨용) */
+  counts_ratio: (result, spec) => {
+    if (!result.counts) return fail('측정 결과가 아직 없어요.');
+    const total = Object.values(result.counts).reduce((sum, n) => sum + n, 0);
+    const ratio = (result.counts[spec.key] || 0) / total;
+    const target = spec.target;
+    const tolerance = spec.tolerance ?? 0.05;
+    return Math.abs(ratio - target) <= tolerance
+      ? { passed: true }
+      : fail(`'${spec.key}'이(가) ${Math.round(ratio * 100)}% 나왔어요. `
+             + `${Math.round(target * 100)}% 근처가 되어야 해요.`);
+  },
+
+  /** 잰 횟수가 정해진 범위 안인가 (shots 자체가 배울 내용인 레슨용) */
+  counts_total_min_max: (result, spec) => {
+    if (!result.counts) return fail('측정 결과가 아직 없어요.');
+    const total = Object.values(result.counts).reduce((sum, n) => sum + n, 0);
+    if (total < spec.min) return fail(`${spec.min}번 이상 재야 해요 (${total}번 쟀어요).`);
+    if (total > spec.max) return fail(`${spec.max}번까지만 재야 해요 (${total}번 쟀어요).`);
+    return { passed: true };
+  },
+
   /**
    * 회로에 특정 연산이 들어 있는가.
    *
