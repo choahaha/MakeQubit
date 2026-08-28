@@ -1,6 +1,7 @@
 import './style.css';
 import assessments from '../data/assessments.json';
 import { getParticipant } from './lib/session.js';
+import { renderCircuitSvg } from './lib/circuit-svg.js';
 import { logEvent, logAssessment, logReflection, flush } from './lib/logger.js';
 import {
   updateQuizProgress, getQuizProgress, getQuizState, saveQuizAnswer, clearQuizState,
@@ -142,16 +143,42 @@ function renderItem() {
     host.appendChild(pre);
   }
 
-  const list = el('div', 'mt-6 space-y-2.5');
+  // 회로가 붙은 문항은 2×2로 놓는다. 글로 설명한 선택지를 읽는 것보다
+  // 회로를 직접 읽고 고르는 것이 이 유형이 재려는 능력에 가깝다.
+  const asCircuits = Array.isArray(item.choiceCircuits)
+    && item.choiceCircuits.length === item.choices.length;
+
+  const list = el('div', asCircuits
+    ? 'mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3'
+    : 'mt-6 flex flex-col gap-2.5');
+
   item.choices.forEach((choice, i) => {
-    const button = el('button',
-      'w-full text-left bg-white border border-slate-200 rounded-xl px-5 py-4 '
-      + 'hover:border-primary hover:bg-primary-soft/40 transition flex items-start gap-3.5');
+    const button = el('button', asCircuits
+      ? 'text-left bg-white border border-slate-200 rounded-xl px-4 py-4 '
+        + 'hover:border-primary hover:bg-primary-soft/40 transition flex flex-col gap-3'
+      : 'w-full text-left bg-white border border-slate-200 rounded-xl px-5 py-4 '
+        + 'hover:border-primary hover:bg-primary-soft/40 transition flex items-start gap-3.5');
     button.dataset.choice = String(i);
-    button.appendChild(el('span',
+
+    const badge = el('span',
       'w-6 h-6 rounded-full border border-slate-300 text-[11px] font-bold '
-      + 'flex items-center justify-center shrink-0 mt-0.5', String(i + 1)));
-    button.appendChild(el('span', 'text-[15px] leading-relaxed', choice));
+      + 'flex items-center justify-center shrink-0', String(i + 1));
+
+    if (asCircuits) {
+      const head = el('div', 'flex items-center gap-2.5');
+      head.appendChild(badge);
+      head.appendChild(el('span', 'text-[13px] text-slate-500', choice));
+      button.appendChild(head);
+
+      const stage = el('div', 'overflow-x-auto');
+      stage.appendChild(renderCircuitSvg(item.choiceCircuits[i]));
+      button.appendChild(stage);
+    } else {
+      badge.className += ' mt-0.5';
+      button.appendChild(badge);
+      button.appendChild(el('span', 'text-[15px] leading-relaxed', choice));
+    }
+
     button.addEventListener('click', () => choose(i));
     list.appendChild(button);
   });
@@ -310,14 +337,23 @@ document.getElementById('intro-meta').textContent =
 
 if (finished) {
   const wrong = set.items.length - finished.score;
+  const score = `지난번엔 ${set.items.length}문제 중 `
+    + `<b class="font-bold text-slate-700">${finished.score}개</b>를 맞았어.`;
+  // 문항별 정오는 나중에 저장하기 시작했다. 그 전 기록에는 없으므로
+  // 동그라미 색으로 안내할 수 없다 — 못 지킬 말을 하지 않는다.
+  const graded = (finished.answers || []).length > 0;
+
   document.querySelector('#intro h2').textContent = '다시 풀어 볼까';
-  document.getElementById('intro-note').innerHTML = wrong
-    ? `지난번엔 ${set.items.length}문제 중 <b class="font-bold text-slate-700">${finished.score}개</b>를 맞았어.<br class="hidden sm:block"/>`
-      + `빨간 동그라미가 틀렸던 문제야.`
-    : `지난번엔 ${set.items.length}문제를 <b class="font-bold text-slate-700">다 맞았어.</b><br class="hidden sm:block"/>`
-      + `다시 풀어 봐도 좋아.`;
+  document.getElementById('intro-note').innerHTML = !wrong
+    ? `지난번엔 ${set.items.length}문제를 <b class="font-bold text-slate-700">다 맞았어.</b>`
+      + `<br class="hidden sm:block"/>다시 풀어 봐도 좋아.`
+    : graded
+      ? `${score}<br class="hidden sm:block"/>빨간 동그라미가 틀렸던 문제야.`
+      : `${score}<br class="hidden sm:block"/>다시 풀면 어디서 틀렸는지도 표시돼.`;
   document.getElementById('start-label').textContent = '다시 풀기';
-  logEvent('assessment_retry', { week, session, previous_score: finished.score });
+  logEvent('assessment_retry', {
+    week, session, previous_score: finished.score, had_detail: graded,
+  });
 } else if (index > 0 && index < set.items.length) {
   // 이어서 푸는 화면. 몇 번부터인지 분명히 말해 준다.
   document.querySelector('#intro h2').textContent = '이어서 풀자';
