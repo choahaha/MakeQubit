@@ -43,12 +43,17 @@ CPU_SECONDS = 5          # hard CPU ceiling; wall-clock timeout lives in runner.
 STUDENT_MEMORY_BYTES = 1024 * 1024 * 1024
 MEMORY_BYTES = 512 * 1024 * 1024   # fallback when the baseline is unreadable
 MAX_FILE_BYTES = 8 * 1024 * 1024
-# RLIMIT_NPROC counts every process and thread belonging to the *user*, not to
-# this process — so the workers, uvicorn and every concurrent run share one
-# budget. At 64 the pool alone nearly filled it and qiskit_aer's thread pool
-# failed to build ("Resource temporarily unavailable"). This is still a fork
-# bomb backstop; it was never per-student isolation.
-MAX_PROCESSES = 512
+# RLIMIT_NPROC is deliberately not set. It counts tasks per *user id across the
+# whole kernel*, and a container shares its kernel with every other container on
+# the host — so processes belonging to other tenants running as the same uid
+# count against us. On Railway the limit was already exceeded before any student
+# code ran, and qiskit's Rust extension died building its thread pool
+# ("The global thread pool has not been initialized", pthread_create EAGAIN)
+# whether the limit was 64 or 512.
+#
+# The container's own pids cgroup is the right backstop and is already in place
+# (pids.max = 1000 against 9 in use). Student code cannot spawn processes in any
+# case: os, subprocess, multiprocessing and threading are all denied.
 MAX_OUTPUT_CHARS = 20_000
 
 # 커리큘럼은 큐비트 3개를 넘지 않는다. 12개면 자유 탐구에도 충분하고,
@@ -116,7 +121,6 @@ def apply_limits():
         (resource.RLIMIT_CPU, CPU_SECONDS, CPU_SECONDS + 2),
         (resource.RLIMIT_AS, as_limit, as_limit),
         (resource.RLIMIT_FSIZE, MAX_FILE_BYTES, MAX_FILE_BYTES),
-        (resource.RLIMIT_NPROC, MAX_PROCESSES, MAX_PROCESSES),
         (resource.RLIMIT_CORE, 0, 0),
     ):
         try:
