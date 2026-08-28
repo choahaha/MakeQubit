@@ -1,7 +1,7 @@
 import './style.css';
 import assessments from '../data/assessments.json';
 import { getParticipant } from './lib/session.js';
-import { logEvent, logAssessment, flush } from './lib/logger.js';
+import { logEvent, logAssessment, logReflection, flush } from './lib/logger.js';
 import { updateQuizProgress } from './lib/progress.js';
 
 const participant = getParticipant();
@@ -140,14 +140,49 @@ function advance() {
     renderItem();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
-    finish();
+    askReflection();
   }
+}
+
+/**
+ * 되돌아보기는 형성평가가 끝난 뒤에 묻는다.
+ *
+ * 예전에는 레슨마다 제출할 때 물었다(16개 중 12개). 제출 버튼을 누른 순간은
+ * 학생이 넘어가고 싶은 순간이라 '몰라요'가 돌아왔고, 그건 데이터가 아니라
+ * 잡음이다. 방금 무엇을 틀렸는지 본 직후가 쓸 거리가 가장 많은 자리다.
+ */
+function askReflection() {
+  if (!set.reflection) {
+    finish();
+    return;
+  }
+  document.getElementById('item').classList.add('hidden');
+  document.getElementById('quiz-progress').textContent = '';
+  document.getElementById('reflect-prompt').textContent = set.reflection;
+  document.getElementById('reflect').classList.remove('hidden');
+  document.getElementById('reflect-answer').focus();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  logEvent('reflection_shown', { week, session });
+}
+
+async function submitReflection(skipped) {
+  const answer = document.getElementById('reflect-answer').value.trim();
+  document.getElementById('reflect').classList.add('hidden');
+
+  logEvent('reflection_submit', {
+    week, session, chars: answer.length, skipped: skipped || !answer,
+  });
+  if (answer) {
+    await logReflection({ week, session, prompt: set.reflection, answer });
+  }
+  finish();
 }
 
 /* ===================== 마무리 ===================== */
 
 function finish() {
   document.getElementById('item').classList.add('hidden');
+  document.getElementById('quiz-progress').textContent = '';
   const score = results.filter((r) => r.correct).length;
 
   document.getElementById('done-score').textContent =
@@ -189,6 +224,9 @@ document.getElementById('btn-start').addEventListener('click', () => {
   logEvent('assessment_start', { week, session, items: set.items.length });
   renderItem();
 });
+
+document.getElementById('reflect-skip').addEventListener('click', () => submitReflection(true));
+document.getElementById('reflect-submit').addEventListener('click', () => submitReflection(false));
 
 document.getElementById('intro').classList.remove('hidden');
 document.body.classList.add('ready');

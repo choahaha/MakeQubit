@@ -194,6 +194,26 @@ export async function logAssessment({
   if (error) console.warn('[logger] assessment insert failed', error.message);
 }
 
+/**
+ * 차시별 되돌아보기.
+ *
+ * 001에서 만든 reflections 테이블을 그대로 쓴다. lesson_id 자리에
+ * 'w2s2' 형태로 차시를 넣는다 — 마이그레이션을 하나 더 돌리게 하는 것보다
+ * 낫다. 분석할 때는 lesson_id like 'w%s%'로 거른다.
+ */
+export async function logReflection({ week, session, prompt, answer }) {
+  const participant = getParticipant();
+  if (!participant || participant.local || !supabase) return;
+
+  const { error } = await supabase.from('reflections').insert({
+    participant_id: participant.id,
+    lesson_id: `w${week}s${session}`,
+    prompt,
+    answer,
+  });
+  if (error) console.warn('[logger] reflection insert failed', error.message);
+}
+
 // 탭을 닫거나 다른 앱으로 넘어가도 큐에 남은 이벤트를 잃지 않는다.
 window.addEventListener('pagehide', flushWithBeacon);
 document.addEventListener('visibilitychange', () => {

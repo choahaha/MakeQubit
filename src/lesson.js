@@ -425,15 +425,10 @@ function errorDetail(error) {
 function openSubmit() {
   const modal = document.getElementById('submit-modal');
 
-  // 레슨에 구체적인 질문이 있을 때만 서술칸을 띄운다. '어떻게 동작하는지
-  // 써 줘' 같은 두루뭉술한 질문은 학생이 무엇을 쓸지 모르고, 연구 쪽에서도
-  // 채점이 안 된다. 그 자리는 차시별 형성평가가 대신한다.
-  const prompt = document.getElementById('submit-prompt');
-  const answer = document.getElementById('submit-answer');
-  const hasQuestion = Boolean(lesson.reflection);
-  prompt.textContent = lesson.reflection || '';
-  prompt.classList.toggle('hidden', !hasQuestion);
-  answer.classList.toggle('hidden', !hasQuestion);
+  // 제출할 때는 아무것도 묻지 않는다. 제출 버튼을 누른 순간은 학생이
+  // 넘어가고 싶은 순간이라, 거기서 글을 요구하면 '몰라요'가 돌아온다.
+  // 되돌아보기는 차시 끝 형성평가 뒤로 옮겼다 — 방금 뭘 틀렸는지 본
+  // 상태라 쓸 거리가 있다.
 
   document.getElementById('submit-summary').innerHTML = summaryChips();
 
@@ -442,7 +437,6 @@ function openSubmit() {
   document.getElementById('submit-done').classList.add('hidden');
 
   modal.classList.remove('hidden');
-  if (hasQuestion) answer.focus();
   logEvent('submit_opened', {
     run_index: runIndex, passed, hints_shown: hintsShown,
   }, lesson.id);
@@ -468,7 +462,6 @@ function closeSubmit() {
 }
 
 async function confirmSubmit() {
-  const answer = document.getElementById('submit-answer').value.trim();
   const code = editor.getCode();
   submissionIndex += 1;
   submitted = true;
@@ -483,7 +476,6 @@ async function confirmSubmit() {
   logEvent('answer_submitted', {
     submission_index: submissionIndex,
     code_chars: code.length,
-    answer_chars: answer.length,
     ...context,
     seconds_on_lesson: context.secondsOnLesson,
   }, lesson.id);
@@ -492,7 +484,7 @@ async function confirmSubmit() {
     lessonId: lesson.id,
     submissionIndex,
     code,
-    answer,
+    answer: null,
     context,
   });
 
