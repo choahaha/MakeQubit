@@ -16,6 +16,12 @@
 - **참여자는 명부(`003_seed_participants.sql`)로만 생긴다.** `enterWithCode()`가
   없는 코드를 자동 생성하도록 되돌리지 말 것. 오타가 새 참여자를 만들면 한 학생의
   기록이 둘로 쪼개지고, 분석할 때가 되어서야 알게 된다.
+- **`VITE_`로 시작하는 값은 브라우저에 그대로 공개된다.** 여기에 service_role
+  키를 넣은 적이 있고, 배포된 번들에 실려 공개 URL에 올라갔다. 앞 글자 하나가
+  빠져 401이 나는 바람에 우연히 발견했다. Vercel에는 anon(또는 `sb_publishable_`)
+  키만, service_role(또는 `sb_secret_`)은 Railway에만 둔다. `vite.config.js`의
+  `forbidSecretKeys`가 빌드에서 막지만, 그건 마지막 그물이지 첫 방어선이 아니다.
+
 - **분석 뷰를 새로 만들면 반드시 `security_invoker = on` + `revoke`를 붙일 것.**
   뷰는 기본적으로 RLS를 우회한다. 빠뜨리면 anon 키로 반 전체 데이터가 읽힌다.
 - **동작 점검은 `Q00`, 교사 시연은 `T00`으로 한다.** 둘 다 `is_test = true`라
