@@ -397,7 +397,7 @@
       "CX는 'control 큐비트가 1이면 target을 뒤집어라'라는 뜻이야. 조건이 붙은 X라고 보면 돼.",
       "control이 0이면 아무 일도 안 일어나. 이번엔 X로 control을 1로 만들어 놓고 확인해 보자."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 두 줄을 써 보자\n#  1) 0번을 1로 만든다 — 이게 control이 된다\n#  2) 0번을 control, 1번을 target으로 CX를 건다\n# 힌트: qc.x(번호) / qc.cx(control, target)\n\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: control을 1로 만들어 놓고 CX를 걸어 보자\n\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
     "hints": [
       "먼저 control이 될 큐비트를 1로 만들어야 CX가 작동해. X 게이트를 쓰면 돼.",
       "qc.x(0) 을 쓰고, 그다음 줄에 qc.cx(0, 1) 을 써 봐.",
@@ -552,7 +552,7 @@
       "Z가 혼자서는 측정에 안 잡혔던 것처럼, CZ도 그냥 걸면 결과가 안 변해.",
       "target을 H로 감싸면 드러나. H-CZ-H는 CX와 같은 일을 해."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\nqc.x(0)      # control을 1로\nqc.h(1)      # target을 중첩으로\n\n# TODO: 0번을 control, 1번을 target으로 CZ를 걸자\n# 힌트: qc.cz(control, target)\n\n\nqc.h(1)      # 다시 H로 되돌린다\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\nqc.x(0)      # control을 1로\nqc.h(1)      # target을 중첩으로\n\n# TODO: 두 큐비트에 CZ를 걸자\n\n\nqc.h(1)      # 다시 H로 되돌린다\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
     "hints": [
       "CX와 쓰는 법이 똑같아. 이름만 cz야.",
       "qc.cz(0, 1) 을 TODO 아래에 넣어 봐.",
@@ -563,11 +563,7 @@
         "type": "circuit_ops",
         "ops": [
           {
-            "name": "cz",
-            "qubits": [
-              0,
-              1
-            ]
+            "name": "cz"
           }
         ],
         "message": "회로에 CZ가 아직 없어요."
@@ -600,7 +596,7 @@
       "실제 양자 컴퓨터에서는 멀리 떨어진 큐비트끼리 직접 CX를 걸 수 없는 경우가 많아.",
       "그럴 때 SWAP으로 값을 옆으로 옮겨서 붙여 놓고 계산해. 자리를 옮기는 도구야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 두 줄을 써 보자\n#  1) 0번만 1로 만든다\n#  2) 0번과 1번의 값을 서로 바꾼다\n# 힌트: qc.x(번호) / qc.swap(번호, 번호)\n\n\n\nqc.measure([0, 1], [0, 1])\nprint(qc.draw())\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 0번만 1로 만든 다음, 두 큐비트의 값을 서로 바꾸자\n\n\n\nqc.measure([0, 1], [0, 1])\nprint(qc.draw())\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
     "hints": [
       "먼저 바꿀 값을 만들어야 해. 0번만 1로 만들어 두면 자리가 바뀐 게 보여.",
       "qc.x(0) 을 쓰고, 그다음 줄에 qc.swap(0, 1) 을 써 봐.",
@@ -633,7 +629,7 @@
       "CCX는 두 control이 모두 1일 때만 target을 뒤집어. 조건이 두 개인 셈이야.",
       "입력 두 개에 H를 걸어 네 경우를 한꺼번에 보면, 11일 때만 결과가 1인 게 보여. 3주차에 이걸로 덧셈기를 만든다."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(3, 3)\n\n# 두 입력을 중첩으로 만들어 네 경우를 한꺼번에 본다\nqc.h(0)\nqc.h(1)\n\n# TODO: 0번과 1번이 모두 1일 때만 2번을 뒤집자\n# 힌트: qc.ccx(control1, control2, target)\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nfor k in sorted(counts):\n    print(f'  입력 {k[2]}{k[1]} → 결과 {k[0]}   ({counts[k]}회)')\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(3, 3)\n\n# 두 입력을 중첩으로 만들어 네 경우를 한꺼번에 본다\nqc.h(0)\nqc.h(1)\n\n# TODO: 0번과 1번이 모두 1일 때만 2번을 뒤집자\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nfor k in sorted(counts):\n    print(f'  입력 {k[2]}{k[1]} → 결과 {k[0]}   ({counts[k]}회)')\n",
     "hints": [
       "control 두 개를 먼저 쓰고 target을 마지막에 써.",
       "qc.ccx(0, 1, 2) 를 TODO 아래에 넣어 봐.",
@@ -644,12 +640,7 @@
         "type": "circuit_ops",
         "ops": [
           {
-            "name": "ccx",
-            "qubits": [
-              0,
-              1,
-              2
-            ]
+            "name": "ccx"
           }
         ],
         "message": "회로에 CCX가 아직 없어요."
