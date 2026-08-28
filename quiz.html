@@ -32,23 +32,26 @@
     </div>
   </header>
 
-  <main class="flex-1 px-6 py-8 max-w-2xl w-full mx-auto">
+  <main class="flex-1 flex flex-col px-6 pt-14 pb-16 max-w-3xl w-full mx-auto">
 
-    <div id="intro" class="hidden">
-      <p id="intro-meta" class="text-[11px] font-bold uppercase tracking-wider text-primary"></p>
-      <h2 class="mt-1.5 text-2xl font-extrabold tracking-tight">배운 걸 확인해 보자</h2>
+    <div id="intro" class="hidden text-center my-auto">
+      <p id="intro-meta" class="text-xs font-bold uppercase tracking-[0.14em] text-primary"></p>
+      <h2 class="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight">배운 걸 확인해 보자</h2>
 
-      <div class="mt-7 relative px-1">
-        <div class="track-rail absolute top-[13px] h-0.5 bg-slate-200 rounded-full"></div>
+      <div class="mt-14 relative mx-auto w-full max-w-xl px-1">
+        <div class="track-rail absolute top-[17px] h-[3px] bg-slate-200 rounded-full"></div>
         <div id="intro-track" class="relative flex justify-between"></div>
       </div>
 
-      <p class="mt-7 text-sm text-slate-600">고르면 바로 답과 설명이 나와.</p>
+      <p class="track-cta opacity-0 mt-14 text-[15px] leading-relaxed text-slate-600">
+        답을 고르면 바로 맞았는지 알려줄게.<br class="hidden sm:block"/>
+        점수는 성적에 안 들어가니까 편하게 풀어도 돼.
+      </p>
 
       <button id="btn-start"
-        class="track-cta opacity-0 mt-4 bg-primary hover:bg-primary-dark text-white font-bold
-               px-6 py-3 rounded-xl transition-colors flex items-center gap-2">
-        <span class="material-icons-round text-lg">play_arrow</span> 시작하기
+        class="track-cta opacity-0 mt-7 mx-auto bg-primary hover:bg-primary-dark text-white font-bold text-[15px]
+               px-8 py-3.5 rounded-xl transition-colors inline-flex items-center gap-2">
+        <span class="material-icons-round text-xl">play_arrow</span> 시작하기
       </button>
     </div>
 
@@ -56,8 +59,8 @@
 
     <div id="reflect" class="hidden">
       <span class="inline-block text-[11px] font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-600">되돌아보기</span>
-      <h2 class="mt-3 text-xl font-bold leading-snug">마지막으로 하나만</h2>
-      <p id="reflect-prompt" class="mt-3 text-slate-700 leading-relaxed"></p>
+      <h2 class="mt-3 text-2xl font-extrabold tracking-tight leading-snug">마지막으로 하나만</h2>
+      <p id="reflect-prompt" class="mt-3 text-[17px] text-slate-700 leading-relaxed"></p>
       <textarea id="reflect-answer" rows="5"
         class="mt-4 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm leading-relaxed
                focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition resize-none"
@@ -74,9 +77,9 @@
       </div>
     </div>
 
-    <div id="done" class="hidden text-center py-10">
+    <div id="done" class="hidden text-center my-auto">
       <span class="material-icons-round text-5xl text-accent-green">emoji_events</span>
-      <h2 class="mt-3 text-2xl font-extrabold">다 풀었어!</h2>
+      <h2 class="mt-3 text-3xl font-extrabold tracking-tight">다 풀었어!</h2>
       <p id="done-score" class="mt-2 font-mono text-lg text-slate-600"></p>
       <div id="done-review" class="mt-6 space-y-2 text-left"></div>
       <a href="/lessons.html"

@@ -52,11 +52,12 @@ function renderTrack() {
     stop.style.width = `${100 / set.items.length}%`;
 
     const dot = el('b',
-      'track-dot w-7 h-7 rounded-full grid place-items-center mx-auto mb-2 '
-      + 'bg-white border-2 border-slate-200 font-code text-xs text-slate-400',
+      'track-dot w-9 h-9 rounded-full grid place-items-center mx-auto mb-3 '
+      + 'bg-white border-2 border-slate-200 font-code text-sm text-slate-400',
       String(i + 1));
     stop.appendChild(dot);
-    stop.appendChild(el('span', 'track-label block text-[11.5px] text-slate-600 opacity-0', item.type));
+    stop.appendChild(el('span',
+      'track-label block text-[13px] font-medium text-slate-600 opacity-0', item.type));
     host.appendChild(stop);
   });
 }
@@ -93,26 +94,26 @@ function renderItem() {
     `inline-block text-[11px] font-bold px-2 py-1 rounded-full ${TYPE_STYLE[item.type] || 'bg-slate-100 text-slate-600'}`,
     item.type));
 
-  host.appendChild(el('h2', 'mt-3 text-xl font-bold leading-snug', item.question));
+  host.appendChild(el('h2', 'mt-3 text-2xl font-bold leading-snug tracking-tight', item.question));
 
   if (item.code) {
     const pre = el('pre',
-      'mt-4 bg-white border border-slate-200 rounded-xl px-4 py-3 overflow-x-auto '
-      + 'text-[13px] leading-relaxed font-code text-slate-800');
+      'mt-5 bg-white border border-slate-200 rounded-xl px-5 py-4 overflow-x-auto '
+      + 'text-[14px] leading-relaxed font-code text-slate-800');
     pre.textContent = item.code;
     host.appendChild(pre);
   }
 
-  const list = el('div', 'mt-5 space-y-2');
+  const list = el('div', 'mt-6 space-y-2.5');
   item.choices.forEach((choice, i) => {
     const button = el('button',
-      'w-full text-left bg-white border border-slate-200 rounded-xl px-4 py-3.5 '
-      + 'hover:border-primary hover:bg-primary-soft/40 transition flex items-start gap-3');
+      'w-full text-left bg-white border border-slate-200 rounded-xl px-5 py-4 '
+      + 'hover:border-primary hover:bg-primary-soft/40 transition flex items-start gap-3.5');
     button.dataset.choice = String(i);
     button.appendChild(el('span',
       'w-6 h-6 rounded-full border border-slate-300 text-[11px] font-bold '
       + 'flex items-center justify-center shrink-0 mt-0.5', String(i + 1)));
-    button.appendChild(el('span', 'text-sm leading-relaxed', choice));
+    button.appendChild(el('span', 'text-[15px] leading-relaxed', choice));
     button.addEventListener('click', () => choose(i));
     list.appendChild(button);
   });
