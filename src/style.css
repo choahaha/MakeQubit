@@ -5,6 +5,9 @@
   --color-primary: #6366f1;
   --color-primary-dark: #4f46e5;
   --color-primary-soft: #eef2ff;
+  /* 목표 배너용. primary-soft보다 한 단계 진하다 — 힌트(하늘)와 나란히 놓였을 때
+     둘 다 옅으면 서로 탁해 보인다. 배너가 확실히 더 진해야 층이 갈린다. */
+  --color-primary-tint: #e0e7ff;
   /* 힌트 전용. 실행(인디고)·성공(초록)·오류(빨강)과 겹치지 않는 네 번째 채널이다.
      노랑은 경고 쪽에 남겨 둔다 — 테스트·교사 세션 표시에 쓴다. */
   --color-secondary: #0284c7;
