@@ -146,3 +146,48 @@ function runOne(spec, result) {
   if (!outcome.passed && spec.message) outcome.reason = spec.message;
   return outcome;
 }
+
+/**
+ * 성공 조건을 한 줄로 옮긴다 — 편집기 위 목표 배너에 쓴다.
+ *
+ * 레슨에 따로 문구를 두지 않고 `check`에서 뽑는다. 판정 조건을 고쳤는데
+ * 배너 문구가 옛 조건을 말하고 있으면 학생이 못 맞히는 목표를 좇게 된다.
+ *
+ * 원인은 여전히 말하지 않는다. '무엇이 나와야 하는가'만 알려 주고,
+ * '왜 안 나오는가'는 학생 몫이다.
+ *
+ * @returns {string|null} 자유 탐구 레슨이면 null
+ */
+export function targetLine(check) {
+  const specs = Array.isArray(check) ? check : [check];
+  // 뒤에서부터 찾는다. circuit_ops 같은 구조 조건이 앞에 오고
+  // 실제 목표인 측정 결과가 뒤에 오는 레슨이 있다.
+  for (let i = specs.length - 1; i >= 0; i -= 1) {
+    const line = describe(specs[i]);
+    if (line) return line;
+  }
+  return null;
+}
+
+function describe(spec) {
+  if (!spec || !spec.type) return null;
+  switch (spec.type) {
+    case 'counts_keys':
+      return `결과에 ${spec.keys.join(', ')} 만 나오면 성공`;
+    case 'counts_balanced':
+      return `${spec.outcomes ?? 2}가지 결과가 골고루 나오면 성공`;
+    case 'counts_ratio':
+      return `'${spec.key}'이(가) ${Math.round(spec.target * 100)}% 근처면 성공`;
+    case 'counts_total_min':
+      return `${spec.min}번 이상 재면 성공`;
+    case 'counts_total_min_max':
+      return `${spec.min}~${spec.max}번 사이로 재면 성공`;
+    // circuit_ops / circuit_contains / stdout_contains는 일부러 비운다.
+    // 어떤 게이트를 걸어야 하는지, 어떤 출력이 나와야 하는지가 곧 정답이다.
+    // 번즈타인-바지라니(l34)에서는 숨은 값 자체가 기대 출력에 들어 있어서,
+    // 그대로 보여 주면 학생이 회로를 만들기 전에 답을 알게 된다.
+    // 성공줄은 '재 보면 무엇이 나오는가'까지만 말한다.
+    default:
+      return null;
+  }
+}

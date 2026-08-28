@@ -2,7 +2,7 @@ import './style.css';
 import lessons from '../data/lessons.json';
 import { createEditor } from './lib/editor.js';
 import { runCode } from './lib/api.js';
-import { checkLesson } from './lib/check.js';
+import { checkLesson, targetLine } from './lib/check.js';
 import { renderCircuitSvg } from './lib/circuit-svg.js';
 import { getParticipant } from './lib/session.js';
 import { logEvent, logCodeRun, logSubmission, flush, nextSeq } from './lib/logger.js';
@@ -44,12 +44,30 @@ let submitted = submissionIndex > 0;
 
 /* ===================== 레슨 안내 렌더 ===================== */
 
+/**
+ * 편집기 위 목표 배너.
+ *
+ * 목표는 왼쪽 패널에도 있지만, 코드를 쓰는 동안 학생 눈은 편집기에 있다.
+ * '무엇을 만드는 중인가'를 코드 바로 위에서 한 번 더 말해 준다.
+ *
+ * 성공 조건은 `check`에서 뽑는다 (targetLine). 조건이 없는 자유 탐구
+ * 레슨에서는 그 줄을 비운다 — 없는 목표를 지어내지 않는다.
+ */
+function renderGoalBanner() {
+  document.getElementById('goal-banner-what').textContent = lesson.goal;
+  const target = targetLine(lesson.check);
+  const line = document.getElementById('goal-banner-target');
+  if (target) line.textContent = target;
+  else line.classList.add('hidden');
+}
+
+
 function renderLessonInfo() {
   document.title = `${lesson.title} — MakeQubit`;
   document.getElementById('lesson-week').textContent =
     `${lesson.week}주 ${lesson.session}차시`;
   document.getElementById('lesson-title').textContent = lesson.title;
-  document.getElementById('lesson-goal').textContent = lesson.goal;
+  renderGoalBanner();
   const chip = document.getElementById('participant-chip');
   chip.textContent = participant.code;
   if (participant.isTest) {

@@ -429,11 +429,11 @@
       "H로 중첩을 만든 뒤 CX를 걸면, 두 큐비트가 서로 묶여 버려. 이걸 얽힘(entanglement)이라고 해.",
       "얽히면 00과 11만 나오고 01, 10은 아예 안 나와. 한쪽을 재는 순간 다른 쪽도 정해지는 거야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# 1단계: 0번 큐비트를 중첩으로 만든다\nqc.h(0)\n\n# TODO: 2단계 — 0번을 control, 1번을 target으로 CX 게이트를 걸자\n# 힌트: qc.cx(control, target)\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 2)\n\n# TODO: 두 줄을 써 보자\n#  1) 0번 큐비트에 H를 걸어 중첩으로 만든다\n#  2) 0번을 control, 1번을 target으로 CX를 건다\n# 힌트: qc.h(번호) / qc.cx(control, target)\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
     "hints": [
-      "control이 앞, target이 뒤야.",
-      "qc.cx(0, 1) 을 TODO 아래에 넣어 봐.",
-      "결과에 00과 11만 있고 01, 10이 없으면 성공이야."
+      "0번을 먼저 중첩으로 만들어야 CX를 걸 의미가 있어. H 게이트를 쓰면 돼.",
+      "qc.h(0) 을 쓰고, 그다음 줄에 qc.cx(0, 1) 을 써 봐.",
+      "정답: qc.h(0) 과 qc.cx(0, 1). 결과에 00과 11만 나오면 성공이야."
     ],
     "check": {
       "type": "counts_keys",
@@ -451,7 +451,7 @@
     ],
     "reflection": null,
     "solution": {
-      "code": "qc.cx(0, 1)",
+      "code": "qc.h(0)\nqc.cx(0, 1)",
       "explanation": "cx는 control 큐비트가 앞, target 큐비트가 뒤다. H로 0번을 중첩으로 만든 뒤 CX를 걸면 두 큐비트가 하나로 묶여, 00과 11만 나오고 01과 10은 아예 나오지 않는다. 앞 레슨에서 네 가지가 골고루 나왔던 것과 대비된다. 한쪽을 재는 순간 다른 쪽도 함께 정해지는 이 상태를 얽힘이라고 한다."
     },
     "session": 1,

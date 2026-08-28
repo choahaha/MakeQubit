@@ -62,11 +62,6 @@
       <div class="p-5 space-y-5">
 
         <div>
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">이번에 할 일</h2>
-          <p id="lesson-goal" class="text-sm leading-relaxed font-medium"></p>
-        </div>
-
-        <div>
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">알아 두기</h2>
           <ul id="lesson-concept" class="space-y-2.5 text-sm leading-relaxed text-slate-600"></ul>
         </div>
@@ -134,6 +129,16 @@
             <span class="material-icons-round text-sm">restart_alt</span>
             처음 코드로
           </button>
+        </div>
+      </div>
+
+      <!-- 목표 배너: 학생 눈이 편집기에 가 있는 동안에도 '무엇을 만드는 중인가'가 보여야 한다. -->
+      <div id="goal-banner"
+        class="shrink-0 flex gap-2.5 px-4 py-3 bg-primary-soft border-b border-primary/15">
+        <span class="material-icons-round text-[17px] text-primary mt-px shrink-0">adjust</span>
+        <div class="min-w-0">
+          <p id="goal-banner-what" class="text-[13px] font-bold leading-snug"></p>
+          <p id="goal-banner-target" class="text-[12.5px] text-slate-500 leading-snug"></p>
         </div>
       </div>
 
