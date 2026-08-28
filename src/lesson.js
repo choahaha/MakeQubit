@@ -618,21 +618,75 @@ async function goToIndex() {
 
 /* ===================== 초기화 ===================== */
 
+/**
+ * 저장된 초안을 읽는다. 옛 형식(문자열)도 읽을 수 있어야 한다.
+ * @returns {{code: string, starter: string|null}|null}
+ */
+function readDraft() {
+  const raw = localStorage.getItem(draftKey);
+  if (raw == null) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && typeof parsed.code === 'string') {
+      return parsed;
+    }
+  } catch { /* 예전에는 코드 문자열만 저장했다 */ }
+  return { code: raw, starter: null };
+}
+
+function saveDraft(code) {
+  try {
+    localStorage.setItem(draftKey, JSON.stringify({
+      code,
+      starter: lesson.starter_code,   // 어느 시작 코드에서 출발했는지
+    }));
+  } catch { /* 저장 못 해도 실습은 계속돼야 한다 */ }
+}
+
+/**
+ * 시작 코드가 바뀌었는데 학생이 손댄 초안이 남아 있을 때 알려준다.
+ *
+ * 레슨 문구를 고쳐도 초안이 있는 학생은 옛 코드를 계속 보게 된다.
+ * 조용히 덮어쓰면 학생이 쓰던 걸 잃고, 그냥 두면 고친 내용이 영영
+ * 전달되지 않는다. 그래서 알려주고 고를 수 있게 한다.
+ */
+function showStarterChanged() {
+  const bar = document.getElementById('starter-notice');
+  bar.classList.remove('hidden');
+  document.getElementById('starter-apply').addEventListener('click', () => {
+    editor.setCode(lesson.starter_code);
+    editor.focus();
+    bar.classList.add('hidden');
+    logEvent('starter_updated', { run_index: runIndex }, lesson.id);
+  });
+  document.getElementById('starter-dismiss').addEventListener('click', () => {
+    bar.classList.add('hidden');
+    // 다시 묻지 않도록 지금 코드를 새 시작 코드 기준으로 다시 저장한다
+    saveDraft(editor.getCode());
+  });
+  logEvent('starter_changed_notice', {}, lesson.id);
+}
+
 function initEditor() {
-  const saved = localStorage.getItem(draftKey);
+  const draft = readDraft();
+  const starterChanged =
+    draft && draft.starter !== null && draft.starter !== lesson.starter_code;
+
+  // 손대지 않은 초안이면 조용히 새 시작 코드로 바꾼다.
+  const untouched = starterChanged && draft.code === draft.starter;
+  const doc = !draft || untouched ? lesson.starter_code : draft.code;
+
   editor = createEditor({
     parent: document.getElementById('editor-host'),
-    doc: saved ?? lesson.starter_code,
+    doc,
     onChange(code) {
-      localStorage.setItem(draftKey, code);
+      saveDraft(code);
       clearTimeout(editTimer);
       editTimer = setTimeout(() => {
         logEvent('code_edit', {
           code_chars: code.length,
           run_index: runIndex,
           code,
-          // 결과를 본 뒤의 수정인지 구분한다. run_index만으로도 복원되지만,
-          // '결과 기반 수정'은 자주 볼 지표라 바로 질의할 수 있게 남긴다.
           ms_since_result: lastResultAt ? Date.now() - lastResultAt : null,
           last_run_status: lastResult?.status ?? null,
         }, lesson.id);
@@ -642,6 +696,8 @@ function initEditor() {
       logEvent('paste', { pasted_chars: chars, preview, run_index: runIndex }, lesson.id);
     },
   });
+
+  if (starterChanged && !untouched) showStarterChanged();
 }
 
 function bindControls() {
@@ -651,6 +707,7 @@ function bindControls() {
   document.getElementById('btn-reset').addEventListener('click', () => {
     editor.setCode(lesson.starter_code);
     editor.focus();
+    document.getElementById('starter-notice').classList.add('hidden');
     logEvent('reset_code', { run_index: runIndex }, lesson.id);
   });
 
@@ -707,7 +764,7 @@ bindControls();
 
 logEvent('lesson_open', {
   week: lesson.week,
-  resumed_draft: Boolean(localStorage.getItem(draftKey)),
+  resumed_draft: Boolean(readDraft()),
 }, lesson.id);
 
 document.body.classList.add('ready');
