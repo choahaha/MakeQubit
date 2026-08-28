@@ -19,6 +19,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+import runner
 from runner import CodeTooLong, WALL_TIMEOUT_SECONDS, run_code
 from sandbox_child import MAX_QUBITS, MAX_SHOTS
 from admin import router as admin_router
@@ -45,7 +46,9 @@ app.add_middleware(
 
 # One Qiskit process per student is fine; thirty at once is not. Requests past
 # the cap wait rather than fail — a classroom submits in bursts.
-MAX_CONCURRENT_RUNS = int(os.environ.get("MAX_CONCURRENT_RUNS", "4"))
+# Keep this at or below runner.POOL_SIZE: past that, extra requests just queue
+# for a warm worker anyway, and the semaphore is the friendlier place to wait.
+MAX_CONCURRENT_RUNS = int(os.environ.get("MAX_CONCURRENT_RUNS", str(runner.POOL_SIZE)))
 _run_slots = threading.BoundedSemaphore(MAX_CONCURRENT_RUNS)
 
 # Per-participant throttle: a Run button gets mashed.
@@ -116,3 +119,18 @@ def limits():
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+@app.on_event("startup")
+def _warm_workers():
+    """Start the qiskit imports before the first student presses 실행.
+
+    In a thread so the health check answers immediately — Railway would
+    otherwise mark the deploy unhealthy while four workers import qiskit.
+    """
+    threading.Thread(target=runner._fill_pool, daemon=True).start()
+
+
+@app.on_event("shutdown")
+def _stop_workers():
+    runner.shutdown_pool()
