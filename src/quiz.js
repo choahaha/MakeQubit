@@ -3,7 +3,7 @@ import assessments from '../data/assessments.json';
 import { getParticipant } from './lib/session.js';
 import { logEvent, logAssessment, logReflection, flush } from './lib/logger.js';
 import {
-  updateQuizProgress, getQuizState, saveQuizAnswer, clearQuizState,
+  updateQuizProgress, getQuizProgress, getQuizState, saveQuizAnswer, clearQuizState,
 } from './lib/progress.js';
 
 const participant = getParticipant();
@@ -19,6 +19,8 @@ const itemIds = set.items.map((i) => i.id);
 
 // 도중에 나갔다 온 경우 푼 데까지 이어받는다. 처음부터 다시 풀게 하면
 // 같은 문항을 두 번 답하게 되어 정답률과 소요 시간이 흐려진다.
+// 이미 다 푼 차시인가. 트랙에 정오를 그리는 데 쓴다.
+const finished = getQuizProgress(week, session);
 const restored = getQuizState(week, session, itemIds);
 const results = (restored?.answers || []).map((a) => ({
   item: set.items.find((i) => i.id === a.itemId),
@@ -59,23 +61,40 @@ function renderTrack() {
   const rail = document.querySelector('.track-rail');
   rail.style.left = `${inset}%`;
   rail.style.right = `${inset}%`;
+
+  // 이미 다 푼 차시면 문항별 정오를 그린다. 어디서 틀렸는지가 한눈에
+  // 보여야 다시 들어온 보람이 있다.
+  const graded = new Map(
+    (finished?.answers || []).map((a) => [a.itemId, a.correct]));
+
   set.items.forEach((item, i) => {
     const stop = el('div', 'track-stop text-center', null);
     stop.style.width = `${100 / set.items.length}%`;
 
-    const done = i < index;
+    const verdict = graded.get(item.id);
+    const resumed = !graded.size && i < index;   // 이어풀기로 이미 푼 문항
+
+    let look;
+    if (verdict === true) {
+      look = 'track-done bg-primary-soft border-2 border-primary/45 text-primary';
+    } else if (verdict === false) {
+      look = 'track-done bg-red-50 border-2 border-red-300 text-accent-red';
+    } else if (resumed) {
+      look = 'track-done bg-primary border-2 border-primary text-white';
+    } else {
+      look = 'bg-white border-2 border-slate-200 text-slate-400';
+    }
+
     const dot = el('b',
-      'track-dot w-9 h-9 rounded-full grid place-items-center mx-auto mb-3 font-code text-sm '
-      + (done
-        // 이미 푼 문항. track-done으로 애니메이션에서 빼지 않으면
-        // track-light가 '아직 안 푼' 모양으로 덮어쓴다.
-        ? 'track-done bg-primary border-2 border-primary text-white'
-        : 'bg-white border-2 border-slate-200 text-slate-400'),
+      `track-dot w-9 h-9 rounded-full grid place-items-center mx-auto mb-3 font-code text-sm ${look}`,
       String(i + 1));
+    dot.title = verdict === true ? `${item.type} · 맞음`
+      : verdict === false ? `${item.type} · 틀림` : item.type;
     stop.appendChild(dot);
+
     stop.appendChild(el('span',
       'track-label block text-[13px] font-medium text-slate-600 opacity-0'
-      + (done ? ' track-done' : ''),
+      + (graded.size || resumed ? ' track-done' : ''),
       item.type));
     host.appendChild(stop);
   });
@@ -269,7 +288,12 @@ function finish() {
     review.appendChild(row);
   }
 
-  updateQuizProgress(week, session, { score, total: set.items.length });
+  updateQuizProgress(week, session, {
+    score,
+    total: set.items.length,
+    // 다시 들어왔을 때 어느 문항에서 틀렸는지 트랙에 그리려면 정오가 필요하다
+    answers: results.map((r) => ({ itemId: r.item.id, correct: r.correct })),
+  });
   clearQuizState(week, session);   // 다 풀었으니 이어풀기 상태는 지운다
   document.getElementById('done').classList.remove('hidden');
   logEvent('assessment_complete', {
@@ -284,7 +308,17 @@ document.getElementById('quiz-meta').textContent = `${week}주 ${session}차시`
 document.getElementById('intro-meta').textContent =
   `${week}주차 ${session}차시 · ${set.items.length}문제`;
 
-if (index > 0 && index < set.items.length) {
+if (finished) {
+  const wrong = set.items.length - finished.score;
+  document.querySelector('#intro h2').textContent = '다시 풀어 볼까';
+  document.getElementById('intro-note').innerHTML = wrong
+    ? `지난번엔 ${set.items.length}문제 중 <b class="font-bold text-slate-700">${finished.score}개</b>를 맞았어.<br class="hidden sm:block"/>`
+      + `빨간 동그라미가 틀렸던 문제야.`
+    : `지난번엔 ${set.items.length}문제를 <b class="font-bold text-slate-700">다 맞았어.</b><br class="hidden sm:block"/>`
+      + `다시 풀어 봐도 좋아.`;
+  document.getElementById('start-label').textContent = '다시 풀기';
+  logEvent('assessment_retry', { week, session, previous_score: finished.score });
+} else if (index > 0 && index < set.items.length) {
   // 이어서 푸는 화면. 몇 번부터인지 분명히 말해 준다.
   document.querySelector('#intro h2').textContent = '이어서 풀자';
   document.getElementById('intro-note').innerHTML =
