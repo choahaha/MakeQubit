@@ -57,6 +57,9 @@ def _child_env(home: str) -> dict:
         # ignores the OMP vars. Parallelising one student's 2-qubit circuit
         # only steals CPU from the other nineteen.
         "RAYON_NUM_THREADS": "1",
+        # glibc opens a fresh 64MB arena per thread. Left alone it eats the
+        # address-space headroom that RLIMIT_AS grants the student.
+        "MALLOC_ARENA_MAX": "2",
     }
 
 

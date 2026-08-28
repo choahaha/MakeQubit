@@ -29,10 +29,18 @@ CPU_SECONDS = 5          # hard CPU ceiling; wall-clock timeout lives in runner.
 # applied, qiskit, qiskit_aer, numpy and BLAS have reserved a large virtual
 # address space, and an absolute 512MB left so little room that `[0] * 100000`
 # raised MemoryError on Linux. (macOS ignores RLIMIT_AS, so this only ever
-# showed up once deployed.) The curriculum tops out at 12 qubits — 4096
-# amplitudes — so the headroom is about catching runaway allocations, not about
-# fitting the simulator.
-STUDENT_MEMORY_BYTES = 256 * 1024 * 1024
+# showed up once deployed.)
+#
+# Generous on purpose. RLIMIT_AS caps *virtual* address space, which runtimes
+# reserve far more of than they ever touch: glibc takes a 64MB malloc arena per
+# thread and 8MB of stack, so 256MB of headroom was not enough for qiskit_aer
+# to build its thread pool at all — pthread_create returned EAGAIN and Aer
+# panicked with 'The global thread pool has not been initialized'.
+#
+# So this is not the memory ceiling; the container's memory limit is. This only
+# has to stop a program that asks for something absurd, early enough to say
+# '큐비트 수를 줄여 보세요' instead of letting the container OOM-kill it.
+STUDENT_MEMORY_BYTES = 1024 * 1024 * 1024
 MEMORY_BYTES = 512 * 1024 * 1024   # fallback when the baseline is unreadable
 MAX_FILE_BYTES = 8 * 1024 * 1024
 # RLIMIT_NPROC counts every process and thread belonging to the *user*, not to
