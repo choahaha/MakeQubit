@@ -72,6 +72,18 @@ Space Grotesk, `--radius: 1rem`. 다크모드는 없다 — 교실 조명 조건
 
 - `sandbox_child.CPU_SECONDS` < `runner.WALL_TIMEOUT_SECONDS`를 유지할 것.
   뒤집히면 벽시계 타임아웃이 먼저 걸려 CPU 초과 메시지가 안 나온다.
+- **`RLIMIT_NPROC`를 쓰지 말 것.** 컨테이너가 아니라 커널 전체에서 그 uid의
+  태스크를 센다. 호스트를 공유하는 다른 컨테이너가 같은 uid로 돌면 그것까지
+  합산되어, 학생 코드가 시작하기도 전에 한도를 넘는다. qiskit의 Rust 확장이
+  스레드 풀을 못 만들고 죽는다(`pthread_create` EAGAIN). 프로세스 수는
+  컨테이너의 pids cgroup이 막고, 학생은 어차피 `os`·`subprocess`·
+  `multiprocessing`·`threading`이 전부 금지라 프로세스를 못 만든다.
+- **`RLIMIT_AS`는 절대값으로 걸지 말 것.** 제한이 걸리는 시점에 qiskit과
+  numpy가 이미 1GB가 넘는 가상 주소 공간을 잡아 둔 상태다. 512MB 절대값을
+  걸면 `[0] * 100000`도 MemoryError가 난다. `/proc/self/statm`에서 이미
+  쓰는 양을 읽어 그 위에 얹는다. 실제 메모리 상한은 컨테이너가 잡는다.
+- **이 둘은 macOS에서 드러나지 않는다.** macOS는 `RLIMIT_AS`를 강제하지
+  않는다. 제한을 손봤으면 배포해서 `/api/diag`로 확인할 것.
 - 학생 네임스페이스의 builtins만 제한한다. `builtins` 모듈 자체를 건드리면
   qiskit_aer 내부가 `open`을 못 찾아 깨진다 (실제로 겪은 문제).
 - import 화이트리스트에 모듈을 추가할 때는 `DENIED_MODULES`가 먼저 검사된다는 걸 기억할 것.

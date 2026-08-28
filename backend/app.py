@@ -123,7 +123,13 @@ def health():
 
 @app.get("/api/diag")
 def diag(x_admin_token: str | None = FHeader(None)):
-    """배포 환경에서만 드러나는 문제를 잡기 위한 진단. 관리자 토큰이 필요하다."""
+    """학생 프로세스가 실제로 보는 rlimit·스레드·cgroup 값을 돌려준다.
+
+    배포 환경에서만 드러나는 문제가 있다 — 이 엔드포인트는 qiskit이 스레드
+    풀을 못 만들던 원인을 찾으려고 만들었고, 두 번의 잘못된 추측 끝에
+    RLIMIT_NPROC가 컨테이너 밖 태스크까지 센다는 걸 여기서 확인했다.
+    수업 중에 또 무슨 일이 생기면 같은 값이 필요하므로 남겨 둔다.
+    """
     from admin import _require_auth
     _require_auth(x_admin_token)
     return runner.diagnose()
