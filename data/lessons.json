@@ -1333,7 +1333,7 @@
       "반복문으로 세 큐비트 모두에 H를 걸고, 사이에 아무것도 안 한 다음 다시 H를 걸어 보자.",
       "H와 H 사이에 무엇을 끼우느냐가 결과를 정한다 — 이게 다음 레슨들의 뼈대야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(3, 3)\n\n# 세 큐비트를 모두 중첩으로\nfor i in range(3):\n    qc.h(i)\n\n# 사이에는 아직 아무것도 없다\n\n# TODO: 세 큐비트를 다시 H로 되돌리자 (위 for 문과 똑같은 모양)\n\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=512).result().get_counts()\nprint(counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(3, 3)\n\n# 세 큐비트를 모두 중첩으로\nfor i in range(3):\n    qc.h(i)\n\n# 여기가 H와 H 사이 — 지금은 비어 있다\n# (다음 레슨부터 이 자리에 무언가 들어간다)\n\n# TODO: 세 큐비트를 다시 H로 되돌리자 (위 for 문과 똑같은 모양)\n\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=512).result().get_counts()\nprint(counts)\n",
     "hints": [
       "위의 for 문과 똑같은 모양을 한 번 더 쓰면 돼.",
       "두 줄이야. 반복문 한 줄과 그 안에 H를 거는 한 줄.",
