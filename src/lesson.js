@@ -31,6 +31,8 @@ const openedAt = Date.now();
 let editor;
 let runIndex = 0;
 let hintsShown = 0;
+// 힌트를 연 뒤 '틀린 실행'을 몇 번 했는가. 다음 힌트를 여는 조건이다.
+let triesSinceHint = 0;
 let lastResult = null;
 let lastResultAt = null;
 let editTimer = null;
@@ -40,6 +42,9 @@ let lastHintIndex = 0;
 // 제출했을 때 passed가 false로 덮어써지고, submission_index도 1부터 다시
 // 세어 같은 번호가 두 번 남는다.
 const saved = getProgress(lesson.id);
+// 새로고침해도 이미 연 힌트는 그대로 둔다. 다시 닫히면 학생이 또 열어야 하고,
+// 그러면 hint_open이 두 번 남아 '몇 번째 힌트까지 필요했나'가 부풀려진다.
+let restoredHints = Math.min(saved.hints || 0, lesson.hints.length);
 let passed = saved.passed === true;
 let submissionIndex = saved.submitted || 0;
 let submitted = submissionIndex > 0;
@@ -182,35 +187,87 @@ function renderProgressDots() {
 
 /* ===================== 힌트 ===================== */
 
+/**
+ * 힌트는 하나씩만 열린다.
+ *
+ * 세 개를 한 번에 펼 수 있으면 막힌 학생은 그냥 셋 다 열고, 그 순간
+ * '몇 번째 힌트까지 필요했나'가 사라진다. 힌트를 하나 본 뒤에는 직접
+ * 한 번 해 봐야 다음 것이 열린다 — 힌트 사이에 학생의 시도가 들어간다.
+ *
+ * 조건은 '틀린 실행'이다. 제출은 조건이 될 수 없다 — 제출하면 해설이
+ * 열리면서 레슨이 끝나서, 다음 힌트를 볼 시점 자체가 없어진다.
+ */
 function updateHintButton() {
   const button = document.getElementById('btn-hint');
   const label = document.getElementById('hint-button-label');
+  const icon = button.querySelector('.material-icons-round');
   const remaining = lesson.hints.length - hintsShown;
 
+  const dim = (on) => {
+    button.disabled = on;
+    button.classList.toggle('opacity-40', on);
+    button.classList.toggle('cursor-default', on);
+  };
+
   if (remaining <= 0) {
-    button.disabled = true;
-    button.className = button.className.replace(/hover:\S+/g, '') + ' opacity-40 cursor-default';
+    dim(true);
+    icon.textContent = 'lightbulb';
     label.textContent = '힌트를 모두 봤어';
+  } else if (!hintUnlocked()) {
+    dim(true);
+    icon.textContent = 'lock';
+    label.textContent = '한 번 해 보고 다시 눌러 줘';
   } else {
+    dim(false);
+    icon.textContent = 'lightbulb';
     label.textContent = hintsShown === 0
       ? '힌트 보기'
       : `힌트 더 보기 (${remaining}개 남음)`;
   }
 }
 
-function showNextHint() {
-  if (hintsShown >= lesson.hints.length) return;
-  const text = lesson.hints[hintsShown];
-  hintsShown += 1;
-
+function addHintCard(index, text) {
   const card = document.createElement('div');
   card.className =
     'bg-secondary-soft border border-secondary/25 rounded-xl px-3 py-2.5 '
     + 'text-sm leading-relaxed text-slate-700';
   card.innerHTML =
-    `<span class="font-bold text-xs text-secondary block mb-0.5">힌트 ${hintsShown}</span>`;
+    `<span class="font-bold text-xs text-secondary block mb-0.5">힌트 ${index + 1}</span>`;
   card.appendChild(document.createTextNode(text));
   document.getElementById('hint-list').appendChild(card);
+}
+
+/**
+ * 지난 방문에서 연 힌트를 그대로 되살린다.
+ *
+ * hint_open은 다시 남기지 않는다 — 새로고침은 학생이 도움을 더 청한 게
+ * 아니다. 여기서 로그를 남기면 '몇 번째 힌트까지 필요했나'가 부풀려진다.
+ */
+function restoreHints() {
+  for (let i = 0; i < restoredHints; i += 1) addHintCard(i, lesson.hints[i]);
+  hintsShown = restoredHints;
+  // 돌아온 학생도 규칙은 같다. 한 번 해 보고 다음 힌트를 연다.
+  triesSinceHint = 0;
+  updateHintButton();
+}
+
+/** 틀린 실행 한 번 = 다음 힌트를 열 자격. */
+function noteFailedTry() {
+  triesSinceHint += 1;
+  updateHintButton();
+}
+
+/** 다음 힌트를 열 수 있는가. 첫 힌트는 조건 없이 열린다. */
+function hintUnlocked() {
+  return hintsShown === 0 || triesSinceHint > 0;
+}
+
+function showNextHint() {
+  if (hintsShown >= lesson.hints.length || !hintUnlocked()) return;
+  addHintCard(hintsShown, lesson.hints[hintsShown]);
+  hintsShown += 1;
+  triesSinceHint = 0;
+  updateProgress(lesson.id, { hints: hintsShown });
 
   lastHintAt = Date.now();
   lastHintIndex = hintsShown;
@@ -401,8 +458,10 @@ async function run() {
     const error = result.error || {};
     editor.markError(error.line);
     renderStatus('error', errorTitle(error), errorDetail(error, code));
+    noteFailedTry();
   } else {
     const outcome = checkLesson(lesson, result);
+    if (!outcome.passed) noteFailedTry();
     if (outcome.passed) {
       if (!passed) {
         passed = true;
@@ -887,6 +946,7 @@ function bindControls() {
 }
 
 renderLessonInfo();
+restoreHints();
 renderProgressDots();
 if (submitted) {
   // 이미 제출한 레슨을 다시 열었다. 해설은 이미 본 것이므로 계속 열어 둔다.
