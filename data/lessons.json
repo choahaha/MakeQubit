@@ -1471,22 +1471,27 @@
   {
     "id": "l35-my-circuit",
     "week": 3,
-    "title": "내 회로 만들기",
-    "subtitle": "자유 탐구",
-    "goal": "지금까지 배운 게이트를 자유롭게 조합해서, 내가 예상한 결과가 나오는지 확인한다.",
+    "title": "마지막 미션",
+    "subtitle": "010과 101만 나오게",
+    "goal": "세 큐비트로 010과 101 두 가지만 나오는 회로를 스스로 설계한다.",
     "concept": [
-      "쓸 수 있는 게이트: h(중첩), x(뒤집기), z(위상 뒤집기), cx(얽힘), swap(자리 바꾸기)",
-      "먼저 종이에 '이렇게 하면 이런 결과가 나올 것 같다'를 적어 두고 실행해 봐.",
-      "예상과 다르면 그게 제일 재미있는 순간이야. 왜 달랐는지 적어 두자."
+      "3주 동안 배운 걸 전부 쓰는 마지막 문제야. 새로 배울 건 없어.",
+      "두 가지만 나온다는 건 얽힘이 걸려 있다는 뜻이야. 세 큐비트가 따로 놀면 여덟 가지가 나오지.",
+      "010과 101은 자리마다 값이 서로 반대야. 000과 111을 먼저 만들어 놓고 생각해 보면 길이 보여."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\n# 큐비트 개수는 마음대로 (2~3개를 추천해)\nqc = QuantumCircuit(2, 2)\n\n# TODO: 여기에 원하는 게이트를 얹어 보자\n# qc.h(번호)  qc.x(번호)  qc.z(번호)  qc.cx(control, target)  qc.swap(0, 1)\n\n\n\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(3, 3)\n\n# TODO: 010과 101 두 가지만 나오도록 회로를 짜 보자\n# 쓸 수 있는 게이트: qc.h(번호)  qc.x(번호)  qc.cx(control, target)\n\n\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
     "hints": [
-      "실행 전에 결과를 먼저 예상해 보고, 예상을 노트에 적어 둬.",
-      "게이트 순서를 바꾸면 결과가 달라질까? 한 번 확인해 봐.",
-      "X를 먼저 걸고 CX를 걸면 어떻게 될까?"
+      "먼저 000과 111만 나오는 회로를 만들어 봐. 세 큐비트를 묶는 건 이미 해 봤어.",
+      "000과 111이 나오는 상태에서 가운데 큐비트만 뒤집으면 어떻게 될까?",
+      "정답: qc.h(0), qc.cx(0, 1), qc.cx(0, 2) 로 000과 111을 만들고, 그다음 qc.x(1). 010과 101만 나오면 성공이야."
     ],
     "check": {
-      "type": "none"
+      "type": "counts_keys",
+      "keys": [
+        "010",
+        "101"
+      ],
+      "message": "010과 101만 나와야 하는데 아직 그렇지 않아요."
     },
     "docs": [
       {
@@ -1496,10 +1501,10 @@
     ],
     "reflection": null,
     "solution": {
-      "code": null,
-      "explanation": "정해진 답이 없는 레슨이다. 예상과 다른 결과가 나왔다면 그 지점이 가장 배울 것이 많은 곳이다. 게이트 순서를 바꾸면 결과가 달라지는지, X를 먼저 걸고 CX를 걸면 어떻게 되는지 확인해 보면 앞의 여섯 레슨이 하나로 이어진다."
+      "code": "qc.h(0)\nqc.cx(0, 1)\nqc.cx(0, 2)\nqc.x(1)",
+      "explanation": "H와 CX 두 개로 세 큐비트를 묶으면 000과 111만 나온다. 거기서 가운데 큐비트에 X를 걸면 000은 010이 되고 111은 101이 된다. 얽힘은 그대로 남아 있어서 여전히 두 가지만 나온다. 얽힌 상태를 먼저 만들고 그다음에 원하는 모양으로 뒤집는 것 — 3주 내내 쓴 방법이 이거다."
     },
     "session": 3,
-    "extra": null
+    "extra": "010과 101 대신 011과 100이 나오게 하려면 어디를 바꿔야 할까?"
   }
 ]
