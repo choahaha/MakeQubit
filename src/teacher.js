@@ -1,5 +1,5 @@
 import './style.css';
-import lessons from '../data/lessons.json';
+import { lessons } from './lib/curriculum.js';
 import assessments from '../data/assessments.json';
 import { getParticipant } from './lib/session.js';
 

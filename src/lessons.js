@@ -1,5 +1,5 @@
 import './style.css';
-import lessons from '../data/lessons.json';
+import { lessons } from './lib/curriculum.js';
 import { getParticipant, clearParticipant } from './lib/session.js';
 import {
   getAllProgress, statusOf, getProgress, getQuizProgress,

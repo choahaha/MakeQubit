@@ -1,5 +1,5 @@
 import './style.css';
-import lessons from '../data/lessons.json';
+import { lessons } from './lib/curriculum.js';
 import { createEditor } from './lib/editor.js';
 import { runCode } from './lib/api.js';
 import { checkLesson, targetLine } from './lib/check.js';
@@ -14,8 +14,11 @@ const participant = getParticipant();
 if (!participant) window.location.replace('/');
 
 const lessonId = new URLSearchParams(window.location.search).get('id');
-const lessonIndex = Math.max(0, lessons.findIndex((l) => l.id === lessonId));
-const lesson = lessons[lessonIndex];
+const lessonIndex = lessons.findIndex((l) => l.id === lessonId);
+// 없는 id(오타)나 이번 수업에서 빼 둔 레슨이면 목차로 보낸다. 예전에는 조용히
+// 1번 레슨을 열었는데, 주소와 화면이 달라서 학생도 교사도 헷갈린다.
+if (lessonIndex < 0) window.location.replace('/lessons.html');
+const lesson = lessons[Math.max(0, lessonIndex)];
 
 // 이동은 이 차시 안에서만 일어난다. 1차시 학생이 화살표만 눌러서 3주차까지
 // 넘어가면, 아직 안 배운 내용을 만나고 수업 진도와도 어긋난다.

@@ -1,5 +1,7 @@
 import './style.css';
-import lessons from '../data/lessons.json';
+// 숨긴 레슨까지 포함한 원본을 쓴다 — 이미 쌓인 기록의 lesson_id를
+// 제목으로 옮기려면 지금 화면에 없는 레슨도 알아야 한다.
+import { allLessons as lessons } from './lib/curriculum.js';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const TOKEN_KEY = 'makequbit.admin';

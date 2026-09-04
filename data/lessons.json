@@ -1021,14 +1021,14 @@
   {
     "id": "l26-function",
     "week": 3,
-    "session": 1,
+    "session": 2,
     "title": "회로를 함수로 묶기",
     "subtitle": "만든 걸 다시 쓰기",
     "goal": "반가산기를 함수로 만들어, 같은 회로를 여러 번 불러 쓴다.",
     "concept": [
       "앞으로 만들 회로는 점점 길어져. 같은 조각을 여러 번 쓰게 되는데, 매번 다시 쓰면 실수가 늘어.",
       "파이썬 함수로 묶으면 이름만 불러서 쓸 수 있어. 회로 조각에 이름을 붙이는 거야.",
-      "def 이름(qc, 큐비트들): 안에 게이트를 넣으면 돼. 3주차 나머지는 이 방식으로 조립한다."
+      "def 이름(qc, 큐비트들): 안에 게이트를 넣으면 돼. 회로가 길어질수록 이 방식이 필요해진다."
     ],
     "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\ndef half_adder(qc, a, b, s, c):\n    \"\"\"a와 b를 더해 s에 합, c에 자리올림을 적는다.\"\"\"\n    # TODO: 반가산기를 여기에 넣자\n\n\n\n\nprint('A B | carry sum')\nfor A in (0, 1):\n    for B in (0, 1):\n        qc = QuantumCircuit(4, 2)\n        if A: qc.x(0)\n        if B: qc.x(1)\n        half_adder(qc, 0, 1, 2, 3)      # 이름만 불러서 쓴다\n        qc.measure([2, 3], [0, 1])\n        k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n        print(f'{A} {B} |   {k[0]}    {k[1]}')\n",
     "hints": [
@@ -1051,13 +1051,13 @@
     "extra": "half_adder를 두 번 불러서 큐비트 여섯 개짜리 회로를 만들어 봐. 서로 다른 자리에 걸면 돼.",
     "solution": {
       "code": "    qc.ccx(a, b, c)\n    qc.cx(a, s)\n    qc.cx(b, s)",
-      "explanation": "회로 조각에 이름을 붙였다. 이제 half_adder(qc, 0, 1, 2, 3)처럼 부르기만 하면 같은 게이트 세 개가 들어간다. 큐비트 번호를 인자로 받으므로 어느 자리에든 걸 수 있다. 다음 레슨부터 전가산기와 두 자리 덧셈을 만들 때, 이렇게 묶어 두면 회로가 길어져도 무엇이 무엇인지 알아볼 수 있다. 실제 양자 프로그램도 이렇게 조각을 쌓아 만든다."
+      "explanation": "회로 조각에 이름을 붙였다. 이제 half_adder(qc, 0, 1, 2, 3)처럼 부르기만 하면 같은 게이트 세 개가 들어간다. 큐비트 번호를 인자로 받으므로 어느 자리에든 걸 수 있다. 회로가 길어져도 이렇게 묶어 두면 무엇이 무엇인지 알아볼 수 있다. 실제 양자 프로그램도 이렇게 조각을 쌓아 만든다."
     }
   },
   {
     "id": "l28-verify",
     "week": 3,
-    "session": 1,
+    "session": 2,
     "title": "진리표로 검증하기",
     "subtitle": "네 가지를 모두 확인",
     "goal": "반가산기를 네 가지 입력으로 모두 돌려 덧셈이 맞는지 확인한다.",
@@ -1153,7 +1153,8 @@
       "code": "qc.ccx(0, 1, 4)\nqc.ccx(0, 2, 4)\nqc.ccx(1, 2, 4)",
       "explanation": "sum은 셋을 모두 XOR하면 된다. carry는 두 개씩 짝지은 AND 세 개를 같은 큐비트에 겹쳐 쌓으면 나온다. 셋 중 둘이 1이면 짝 하나만 걸려 carry가 1이 되고, 셋 다 1이면 짝 셋이 모두 걸리는데 1을 세 번 뒤집으면 다시 1이라 여전히 1이다. 결국 '둘 이상이면 1'이 된다. 1+1+1 = 3 은 이진수로 11 이므로 carry 1, sum 1 이 맞다."
     },
-    "extra": "CCX 세 개 중 하나를 빼면 어떤 입력에서 틀릴까? 진리표로 찾아봐."
+    "extra": "CCX 세 개 중 하나를 빼면 어떤 입력에서 틀릴까? 진리표로 찾아봐.",
+    "hidden": true
   },
   {
     "id": "l36-adder-function",
@@ -1188,7 +1189,8 @@
     "solution": {
       "code": "    qc.cx(a, s)\n    qc.cx(b, s)\n    qc.cx(cin, s)\n    qc.ccx(a, b, c)\n    qc.ccx(a, cin, c)\n    qc.ccx(b, cin, c)",
       "explanation": "합은 A XOR B XOR Cin이라 CX 세 줄이면 되고, 자리올림은 셋 중 둘 이상이 1일 때 1이므로 둘씩 짝지은 CCX 세 줄이 필요하다. 함수로 묶어 두면 입력 여덟 가지를 반복문 하나로 다 확인할 수 있다 — 손으로 여덟 번 회로를 짜는 것과 결과는 같지만, 실수할 자리가 사라진다."
-    }
+    },
+    "hidden": true
   },
   {
     "id": "l30-two-bit-adder",
@@ -1232,7 +1234,8 @@
       "code": "qc.cx(1, 6)\nqc.cx(3, 6)\nqc.cx(5, 6)\nqc.ccx(1, 3, 7)\nqc.ccx(1, 5, 7)\nqc.ccx(3, 5, 7)",
       "explanation": "2의 자리는 입력이 셋이라 전가산기가 필요하다 — a1, b1, 그리고 1의 자리에서 올라온 c1. 합은 셋을 전부 XOR 한 값이라 CX 세 줄이고, 자리올림은 셋 중 둘 이상이 1일 때 1이라 둘씩 짝지은 CCX 세 줄이다. 앞 레슨의 전가산기와 완전히 같은 회로이고 큐비트 번호만 다르다. 회로를 블록처럼 이어 붙인다는 게 이런 뜻이다."
     },
-    "extra": null
+    "extra": null,
+    "hidden": true
   },
   {
     "id": "l31-superposed-add",
