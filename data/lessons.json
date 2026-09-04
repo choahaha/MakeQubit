@@ -1156,50 +1156,67 @@
     "extra": "CCX 세 개 중 하나를 빼면 어떤 입력에서 틀릴까? 진리표로 찾아봐."
   },
   {
+    "id": "l36-adder-function",
+    "week": 3,
+    "session": 2,
+    "title": "전가산기를 함수로",
+    "subtitle": "여덟 가지를 한 번에 확인",
+    "goal": "전가산기를 함수로 묶어, 여덟 가지 입력을 한 번에 확인한다.",
+    "concept": [
+      "반가산기를 함수로 묶어 봤지. 전가산기도 똑같이 묶을 수 있어.",
+      "묶어 두면 입력 여덟 가지를 반복문으로 한 번에 돌려 볼 수 있어. 매번 여섯 줄을 다시 쓸 필요가 없지.",
+      "합은 세 입력을 전부 XOR 한 값이고, 자리올림은 셋 중 둘 이상이 1이면 1이야."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\ndef full_adder(qc, a, b, cin, s, c):\n    \"\"\"a + b + cin 을 계산해 s에 합, c에 자리올림을 적는다.\"\"\"\n    # TODO: 전가산기를 여기에 넣자 — 합은 s에, 자리올림은 c에\n\n\n\n\n\n\nprint('A B Cin | carry sum')\nfor A in (0, 1):\n    for B in (0, 1):\n        for C in (0, 1):\n            qc = QuantumCircuit(5, 2)\n            if A: qc.x(0)\n            if B: qc.x(1)\n            if C: qc.x(2)\n            full_adder(qc, 0, 1, 2, 3, 4)\n            qc.measure([3, 4], [0, 1])\n            k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n            print(f'{A} {B}  {C}  |   {k[0]}    {k[1]}   (={A+B+C})')\n",
+    "hints": [
+      "앞 레슨에서 만든 전가산기를 함수 안으로 옮기는 거야. 번호 대신 a, b, cin, s, c 이름을 쓰면 돼.",
+      "여섯 줄이야. 합은 세 입력을 각각 s에 더하고, 자리올림은 둘씩 짝지어 c에 넣어.",
+      "정답: qc.cx(a, s), qc.cx(b, s), qc.cx(cin, s) 그리고 qc.ccx(a, b, c), qc.ccx(a, cin, c), qc.ccx(b, cin, c) — def 아래 네 칸 들여쓰기로."
+    ],
+    "check": {
+      "type": "stdout_contains",
+      "needles": [
+        "1 1  1  |   1    1",
+        "0 0  0  |   0    0",
+        "1 0  1  |   1    0"
+      ],
+      "message": "여덟 줄이 모두 맞는 덧셈이 되어야 해요."
+    },
+    "docs": [],
+    "reflection": null,
+    "extra": "carry 세 줄을 지우면 어떻게 될까? 합만 맞고 자리올림이 늘 0으로 나올 거야.",
+    "solution": {
+      "code": "    qc.cx(a, s)\n    qc.cx(b, s)\n    qc.cx(cin, s)\n    qc.ccx(a, b, c)\n    qc.ccx(a, cin, c)\n    qc.ccx(b, cin, c)",
+      "explanation": "합은 A XOR B XOR Cin이라 CX 세 줄이면 되고, 자리올림은 셋 중 둘 이상이 1일 때 1이므로 둘씩 짝지은 CCX 세 줄이 필요하다. 함수로 묶어 두면 입력 여덟 가지를 반복문 하나로 다 확인할 수 있다 — 손으로 여덟 번 회로를 짜는 것과 결과는 같지만, 실수할 자리가 사라진다."
+    }
+  },
+  {
     "id": "l30-two-bit-adder",
     "week": 3,
     "session": 2,
     "title": "두 자리 덧셈",
     "subtitle": "블록을 이어 붙이기",
-    "goal": "반가산기와 전가산기를 이어 붙여 두 자리 수 덧셈 회로를 만든다.",
+    "goal": "1의 자리 반가산기에 2의 자리 전가산기를 직접 이어 붙여 두 자리 덧셈을 완성한다.",
     "concept": [
       "이제 두 자리 수를 더해 보자. 1의 자리는 올라온 게 없으니 반가산기로 충분해.",
       "2의 자리는 1의 자리에서 올라온 carry를 받아야 하니까 전가산기를 써야 해.",
       "새로 배울 게이트는 없어. 앞에서 만든 두 블록을 순서대로 연결하는 게 전부야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# A = a1 a0,  B = b1 b0,  답 = s2 s1 s0\n# q0=a0 q1=a1 q2=b0 q3=b1 | q4=s0 q5=c1 q6=s1 q7=s2\nqc = QuantumCircuit(8, 3)\n\nqc.x(0)              # A = 01 (1)\nqc.x(2); qc.x(3)     # B = 11 (3)\n\n# 1의 자리 — 반가산기\nqc.cx(0, 4)\nqc.cx(2, 4)\nqc.ccx(0, 2, 5)\n\n# 2의 자리 — 전가산기 (a1, b1, 그리고 올라온 c1)\n# TODO: sum을 q6에 만들자\n\n\n\nqc.ccx(1, 3, 7)\nqc.ccx(1, 5, 7)\nqc.ccx(3, 5, 7)\n\nqc.measure([4, 6, 7], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=256).result().get_counts()\nk = list(counts)[0]\nprint('1 + 3 =', int(k[0]) * 4 + int(k[1]) * 2 + int(k[2]))\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# A = a1 a0,  B = b1 b0,  답 = s2 s1 s0\n# q0=a0 q1=a1 q2=b0 q3=b1 | q4=s0 q5=c1 q6=s1 q7=s2\nqc = QuantumCircuit(8, 3)\n\nqc.x(0)              # A = 01 (1)\nqc.x(2); qc.x(3)     # B = 11 (3)\n\n# 1의 자리 — 반가산기. a0와 b0를 더해 s0에 합, c1에 자리올림\nqc.cx(0, 4)\nqc.cx(2, 4)\nqc.ccx(0, 2, 5)\n\n# TODO: 2의 자리 — 전가산기를 직접 짜 보자\n#  입력은 a1(q1), b1(q3), 그리고 1의 자리에서 올라온 c1(q5)\n#  합은 q6에, 마지막 자리올림은 q7에\n\n\n\n\n\n\nqc.measure([4, 6, 7], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=256).result().get_counts()\nk = list(counts)[0]\nprint('1 + 3 =', int(k[0]) * 4 + int(k[1]) * 2 + int(k[2]))\n",
     "hints": [
-      "전가산기의 sum 부분이야. sum은 입력 셋을 전부 XOR 한 값이고.",
-      "세 줄이야. 입력 셋(q1, q3, q5)을 각각 답 자리인 q6에 더해.",
-      "정답: qc.cx(1, 6), qc.cx(3, 6), qc.cx(5, 6). 1 + 3 = 4 가 나오면 성공이야."
+      "앞에서 만든 전가산기와 똑같은 모양이야. 번호만 이 회로에 맞추면 돼.",
+      "여섯 줄이야. 합은 입력 셋을 각각 q6에 더하고, 자리올림은 둘씩 짝지어 q7에 넣어.",
+      "정답: qc.cx(1, 6), qc.cx(3, 6), qc.cx(5, 6) 그리고 qc.ccx(1, 3, 7), qc.ccx(1, 5, 7), qc.ccx(3, 5, 7). 1 + 3 = 4 가 나오면 성공이야."
     ],
     "check": [
       {
         "type": "circuit_ops",
         "ops": [
           {
-            "name": "cx",
-            "qubits": [
-              1,
-              6
-            ]
-          },
-          {
-            "name": "cx",
-            "qubits": [
-              3,
-              6
-            ]
-          },
-          {
-            "name": "cx",
-            "qubits": [
-              5,
-              6
-            ]
+            "name": "ccx"
           }
         ],
-        "message": "2의 자리 sum을 만드는 CX 세 개가 아직 다 들어가지 않았어요."
+        "message": "자리올림을 만드는 게이트가 아직 없어요."
       },
       {
         "type": "stdout_contains",
@@ -1212,8 +1229,8 @@
     "docs": [],
     "reflection": null,
     "solution": {
-      "code": "qc.cx(1, 6)\nqc.cx(3, 6)\nqc.cx(5, 6)",
-      "explanation": "1의 자리에서 나온 carry(q5)가 2의 자리 전가산기의 세 번째 입력이 된다. 그래서 sum은 a1, b1, c1 세 개를 XOR한 값이다. 1 + 3 은 이진수로 01 + 11 = 100, 즉 4다. 여기서 중요한 건 새로운 아이디어가 없다는 점이다. 반가산기와 전가산기를 순서대로 붙였을 뿐인데 자릿수가 늘었다. 이렇게 계속 이어 붙이면 몇 자리든 더할 수 있다."
+      "code": "qc.cx(1, 6)\nqc.cx(3, 6)\nqc.cx(5, 6)\nqc.ccx(1, 3, 7)\nqc.ccx(1, 5, 7)\nqc.ccx(3, 5, 7)",
+      "explanation": "2의 자리는 입력이 셋이라 전가산기가 필요하다 — a1, b1, 그리고 1의 자리에서 올라온 c1. 합은 셋을 전부 XOR 한 값이라 CX 세 줄이고, 자리올림은 셋 중 둘 이상이 1일 때 1이라 둘씩 짝지은 CCX 세 줄이다. 앞 레슨의 전가산기와 완전히 같은 회로이고 큐비트 번호만 다르다. 회로를 블록처럼 이어 붙인다는 게 이런 뜻이다."
     },
     "extra": null
   },
@@ -1302,33 +1319,62 @@
     "extra": "shots를 10으로 하면 네 가지가 다 나올까? 여러 번 해 봐."
   },
   {
+    "id": "l37-many-h",
+    "week": 3,
+    "session": 3,
+    "title": "여러 개를 한꺼번에 되돌리기",
+    "subtitle": "H 사이에 무엇을 끼우느냐",
+    "goal": "여러 큐비트에 H를 걸었다가 다시 걸면 전부 제자리로 돌아오는 것을 확인한다.",
+    "concept": [
+      "H를 두 번 걸면 제자리로 돌아오는 건 큐비트 하나에서 이미 봤어. 여러 개도 똑같아.",
+      "반복문으로 세 큐비트 모두에 H를 걸고, 사이에 아무것도 안 한 다음 다시 H를 걸어 보자.",
+      "H와 H 사이에 무엇을 끼우느냐가 결과를 정한다 — 이게 다음 레슨들의 뼈대야."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(3, 3)\n\n# 세 큐비트를 모두 중첩으로\nfor i in range(3):\n    qc.h(i)\n\n# 사이에는 아직 아무것도 없다\n\n# TODO: 세 큐비트를 다시 H로 되돌리자 (위 for 문과 똑같은 모양)\n\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\ncounts = sim.run(transpile(qc, sim), shots=512).result().get_counts()\nprint(counts)\n",
+    "hints": [
+      "위의 for 문과 똑같은 모양을 한 번 더 쓰면 돼.",
+      "두 줄이야. 반복문 한 줄과 그 안에 H를 거는 한 줄.",
+      "정답: for i in range(3): 과 그 아래 네 칸 들여쓰기로 qc.h(i)"
+    ],
+    "check": {
+      "type": "counts_keys",
+      "keys": [
+        "000"
+      ],
+      "message": "000만 나와야 하는데 아직 그렇지 않아요."
+    },
+    "docs": [],
+    "reflection": null,
+    "extra": "H와 H 사이에 qc.z(0) 을 끼우면 어떻게 될까? 0번만 1로 바뀔 거야.",
+    "solution": {
+      "code": "for i in range(3):\n    qc.h(i)",
+      "explanation": "H를 두 번 걸면 제자리로 돌아온다. 큐비트가 셋이어도 같고, 반복문으로 쓰면 개수가 늘어도 코드는 그대로다. 중요한 건 H와 H 사이가 비어 있으면 000만 나온다는 것이다 — 사이에 무언가를 끼웠을 때 결과가 달라진다면, 그 무언가가 한 일이 드러난 것이다."
+    }
+  },
+  {
     "id": "l33-kickback",
     "week": 3,
-    "session": 2,
+    "session": 3,
     "title": "위상 킥백",
     "subtitle": "target을 건드렸는데 control이 바뀐다",
-    "goal": "target을 |−⟩ 상태로 만들어 두고 CX를 걸어, 바뀌는 쪽이 control이 되는 것을 확인한다.",
+    "goal": "target을 |−⟩로 만들어 두고 CX를 걸어, 바뀌는 쪽이 control이라는 것을 두 개로 확인한다.",
     "concept": [
       "CX는 control이 target을 뒤집는 게이트였어. 그런데 target을 특별한 상태로 만들어 두면 반대가 돼.",
       "target에 X와 H를 걸면 |−⟩라는 상태가 돼. 이 상태는 뒤집어도 모양이 그대로고 부호만 바뀌어.",
       "그 부호가 control 쪽으로 되돌아와. 이걸 위상 킥백이라고 해. 양자 알고리즘이 답을 뽑아내는 방식이야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(2, 1)\n\nqc.h(0)              # control을 중첩으로\nqc.x(1); qc.h(1)     # target을 |-> 상태로\n\n# TODO: control과 target에 CX를 걸자\n\n\nqc.h(0)              # control을 다시 H로 되돌려 본다\nqc.measure(0, 0)\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint('control을 재면:', counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(3, 2)\n\nqc.h(0); qc.h(1)     # control 두 개를 중첩으로\nqc.x(2); qc.h(2)     # target을 |-> 상태로\n\n# TODO: 두 control 각각에서 target으로 CX를 걸자\n\n\nqc.h(0); qc.h(1)     # control을 다시 H로 되돌려 본다\nqc.measure([0, 1], [0, 1])\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint('control 두 개를 재면:', counts)\n",
     "hints": [
       "평소처럼 걸면 돼. 위 두 줄이 이미 control과 target을 준비해 뒀어.",
-      "CX 한 줄이야. 0번이 control, 1번이 target.",
-      "정답: qc.cx(0, 1). control이 1만 나오면 성공이야. CX를 빼면 0만 나와."
+      "두 줄이야. control은 0번과 1번, target은 둘 다 2번으로 같아.",
+      "정답: qc.cx(0, 2) 와 qc.cx(1, 2). 11만 나오면 성공이야 — 건드린 건 target인데 바뀐 건 control 둘 다야."
     ],
     "check": [
       {
         "type": "circuit_ops",
         "ops": [
           {
-            "name": "cx",
-            "qubits": [
-              0,
-              1
-            ]
+            "name": "cx"
           }
         ],
         "message": "CX가 아직 없어요."
@@ -1336,23 +1382,58 @@
       {
         "type": "counts_keys",
         "keys": [
-          "1"
+          "11"
         ],
-        "message": "control이 1만 나와야 하는데 아직 그렇지 않아요."
+        "message": "11만 나와야 하는데 아직 그렇지 않아요."
       }
     ],
     "docs": [],
     "reflection": "우리는 target에 CX를 걸었는데 바뀐 건 control이었어. 어떻게 이런 일이 가능할까?",
     "extra": "target을 |-> 로 만드는 두 줄(x와 h)을 지우고 돌려 봐. 결과가 어떻게 달라져?",
     "solution": {
-      "code": "qc.cx(0, 1)",
-      "explanation": "CX를 빼면 control은 H를 두 번 건 셈이라 0으로 돌아온다. CX를 넣으면 1이 나온다. target인 |−⟩는 뒤집혀도 모양이 그대로지만 부호가 -1로 바뀐다. 그 부호가 control의 중첩에 실려 되돌아오고, 뒤이은 H에서 간섭이 반대로 일어나 1이 된다. 우리는 target을 건드렸는데 정보는 control에 남았다. 다음 레슨의 알고리즘이 바로 이 방식으로 답을 뽑아낸다."
+      "code": "qc.cx(0, 2)\nqc.cx(1, 2)",
+      "explanation": "target이 |−⟩일 때 CX를 걸면 target은 그대로이고 control에 위상이 붙는다. 이걸 위상 킥백이라고 한다. control을 H로 되돌리면 그 위상이 측정 가능한 값으로 드러나서, CX를 건 쪽이 1로 나온다. control이 둘이어도 각각에 따로 일어난다 — 여기서 CX를 하나만 걸면 그쪽만 1이 된다. 다음 레슨의 상자가 이 성질을 쓴다."
+    }
+  },
+  {
+    "id": "l38-oracle",
+    "week": 3,
+    "session": 3,
+    "title": "상자에게 묻기",
+    "subtitle": "고전 방식으로는 몇 번 물어야 할까",
+    "goal": "비밀을 숨긴 상자를 만들고, 한 번에 한 자리씩 물어서 알아낸다.",
+    "concept": [
+      "숨은 비트열을 가진 상자가 있어. 입력을 넣으면 답을 하나 돌려줘.",
+      "상자 안은 간단해 — 비밀의 1인 자리마다 CX를 걸어 둔 거야. 입력의 그 자리가 1이면 답이 뒤집힌다.",
+      "001을 넣으면 비밀의 0번 자리를, 010을 넣으면 1번 자리를 알 수 있어. 자리 수만큼 물어야 하지."
+    ],
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\nsecret = '101'      # 상자가 숨기고 있는 값\n\nfor x in ('001', '010', '100'):\n    qc = QuantumCircuit(4, 1)\n\n    # 입력 x를 심는다\n    for i, bit in enumerate(reversed(x)):\n        if bit == '1':\n            qc.x(i)\n\n    # 상자 안 — 비밀의 1인 자리마다 CX\n    for i, bit in enumerate(reversed(secret)):\n        if bit == '1':\n            # TODO: i번을 control, 답 자리인 3번을 target으로 CX를 걸자\n\n\n    qc.measure(3, 0)\n    k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n    print(f'  {x} 를 넣으면 → {k}')\n",
+    "hints": [
+      "if 문 안이라 이미 깊이 들어가 있어. 위 if 문의 qc.x(i) 와 같은 깊이로 쓰면 돼.",
+      "한 줄이야. control은 지금 자리 i, target은 답 자리인 3번.",
+      "정답: qc.cx(i, 3). 답이 1, 0, 1 로 나오면 성공 — 그게 바로 비밀이야."
+    ],
+    "check": {
+      "type": "stdout_contains",
+      "needles": [
+        "001 를 넣으면 → 1",
+        "010 를 넣으면 → 0",
+        "100 를 넣으면 → 1"
+      ],
+      "message": "세 번의 답이 아직 맞지 않아요."
+    },
+    "docs": [],
+    "reflection": null,
+    "extra": "secret 을 '1101' 로 바꾸면 몇 번 물어야 할까? 입력도 네 자리로 바꿔야 해.",
+    "solution": {
+      "code": "qc.cx(i, 3)",
+      "explanation": "상자는 비밀의 1인 자리마다 CX를 걸어 둔 회로다. 001을 넣으면 0번 자리만 1이므로 비밀의 0번 자리가 1일 때만 답이 뒤집힌다 — 즉 한 번에 한 자리씩 읽어낸 것이다. 세 번 물어 1, 0, 1을 얻었고 그게 비밀 101이다. 자리가 n개면 n번 물어야 한다. 다음 레슨에서 이걸 한 번으로 줄인다."
     }
   },
   {
     "id": "l34-bernstein",
     "week": 3,
-    "session": 2,
+    "session": 3,
     "title": "숨은 값 한 번에 맞히기",
     "subtitle": "번스타인-바지라니 알고리즘",
     "goal": "숨은 비트열을 딱 한 번 물어서 통째로 알아낸다.",
@@ -1361,11 +1442,11 @@
       "고전 컴퓨터는 한 자리씩 물어봐야 해. 네 자리면 네 번. 자릿수만큼 걸려.",
       "양자는 전부 중첩으로 넣고 위상 킥백으로 답을 실어 와. 한 번 재면 비밀이 그대로 나와."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\ndef find_secret(secret):\n    n = len(secret)\n    qc = QuantumCircuit(n + 1, n)\n\n    qc.x(n); qc.h(n)                  # 마지막 큐비트를 |-> 로 (킥백 준비)\n    for i in range(n):\n        qc.h(i)                       # 물어볼 자리를 전부 중첩으로\n\n    # 상자에게 딱 한 번 물어본다 — 비밀의 1인 자리마다 CX\n    for i, bit in enumerate(reversed(secret)):\n        if bit == '1':\n            qc.cx(i, n)\n\n    # TODO: 물어본 자리를 전부 다시 H로 되돌리자\n    # 힌트: 위의 for 문과 똑같은 모양이다\n\n\n\n    qc.measure(range(n), range(n))\n    c = sim.run(transpile(qc, sim), shots=64).result().get_counts()\n    k = max(c, key=c.get)\n    print(f'  숨은 값 {secret} → 한 번 재서 알아낸 값 {k}  (64번 중 {c[k]}번)')\n\nfind_secret('101')\nfind_secret('1101')\nfind_secret('0110')\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\ndef find_secret(secret):\n    n = len(secret)\n    qc = QuantumCircuit(n + 1, n)\n\n    qc.x(n); qc.h(n)                  # 답 자리를 |-> 로 (킥백 준비)\n\n    # TODO: 물어볼 자리를 전부 중첩으로 만들자\n\n\n    # 상자에게 딱 한 번 물어본다 — 앞 레슨에서 만든 그 상자다\n    for i, bit in enumerate(reversed(secret)):\n        if bit == '1':\n            qc.cx(i, n)\n\n    # TODO: 물어본 자리를 전부 다시 되돌리자\n\n\n    qc.measure(range(n), range(n))\n    c = sim.run(transpile(qc, sim), shots=64).result().get_counts()\n    k = max(c, key=c.get)\n    print(f'  숨은 값 {secret} → 한 번 재서 알아낸 값 {k}  (64번 중 {c[k]}번)')\n\nfind_secret('101')\nfind_secret('1101')\nfind_secret('0110')\n",
     "hints": [
-      "앞에서 H를 걸었던 for 문을 그대로 한 번 더 쓰면 돼.",
-      "두 줄이야. 위의 for 문과 똑같은 모양이고, 함수 안이라 들여쓰기는 네 칸.",
-      "정답: for i in range(n): 과 그 아래 qc.h(i). 숨은 값과 알아낸 값이 같으면 성공이야."
+      "앞 레슨에서 세 큐비트를 한꺼번에 되돌렸던 그 모양이야. 위아래 두 자리에 같은 걸 쓰면 돼.",
+      "각각 두 줄씩, 모두 네 줄이야. 반복문 한 줄과 그 안에 H를 거는 한 줄. 함수 안이라 들여쓰기는 네 칸.",
+      "정답: 두 자리 모두 for i in range(n): 과 그 아래 qc.h(i). 숨은 값과 알아낸 값이 같으면 성공이야."
     ],
     "check": {
       "type": "stdout_contains",
@@ -1380,8 +1461,8 @@
     "reflection": "고전 컴퓨터는 네 자리를 알아내려면 네 번 물어야 해. 양자는 한 번에 알아냈어. 어떻게 그게 가능했을까?",
     "extra": "비밀이 한 자리(0 또는 1)뿐이면 어떻게 될까? 그게 도이치 알고리즘이야. find_secret('1')로 확인해 봐.",
     "solution": {
-      "code": "    for i in range(n):\n        qc.h(i)",
-      "explanation": "상자에 딱 한 번 물었는데 비밀이 통째로 나왔다. 비밀의 1인 자리마다 CX가 걸리고, 앞 레슨에서 본 위상 킥백으로 그 정보가 물어본 큐비트들의 위상에 실린다. 마지막 H들이 그 위상을 간섭시켜, 재면 비밀 비트열이 그대로 읽힌다. 고전은 자리마다 한 번씩 물어야 하니 네 자리면 네 번, 스무 자리면 스무 번이다. 양자는 항상 한 번이다. 자릿수가 커질수록 차이가 벌어진다. '한 번에 다 계산해도 답은 하나뿐'이라던 그 하나를, 원하는 답으로 만든 것이다."
+      "code": "for i in range(n):\n        qc.h(i)",
+      "explanation": "상자에 한 번만 물었는데 비밀이 통째로 나온다. 고전 방식은 자리 수만큼 물어야 했다. 물어볼 자리를 전부 중첩으로 만들면 모든 입력을 한꺼번에 넣은 셈이 되고, 답 자리가 |−⟩라 상자가 답을 값이 아니라 위상으로 돌려준다. 마지막에 H로 되돌리면 그 위상이 비밀 그대로 드러난다. 앞 세 레슨에서 나눠 만든 것이 여기서 하나로 합쳐진다."
     }
   },
   {
@@ -1415,7 +1496,7 @@
       "code": null,
       "explanation": "정해진 답이 없는 레슨이다. 예상과 다른 결과가 나왔다면 그 지점이 가장 배울 것이 많은 곳이다. 게이트 순서를 바꾸면 결과가 달라지는지, X를 먼저 걸고 CX를 걸면 어떻게 되는지 확인해 보면 앞의 여섯 레슨이 하나로 이어진다."
     },
-    "session": 2,
+    "session": 3,
     "extra": null
   }
 ]
