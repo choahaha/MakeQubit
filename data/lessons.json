@@ -1359,18 +1359,18 @@
     "week": 3,
     "session": 3,
     "title": "위상 킥백",
-    "subtitle": "target을 건드렸는데 control이 바뀐다",
-    "goal": "target을 |−⟩로 만들어 두고 CX를 걸어, 바뀌는 쪽이 control이라는 것을 두 개로 확인한다.",
+    "subtitle": "사이에 CX를 넣어 보면",
+    "goal": "H와 H 사이에 CX를 넣고, target 상태를 바꿔 가며 control이 어떻게 달라지는지 확인한다.",
     "concept": [
-      "CX는 control이 target을 뒤집는 게이트였어. 그런데 target을 특별한 상태로 만들어 두면 반대가 돼.",
-      "target에 X와 H를 걸면 |−⟩라는 상태가 돼. 이 상태는 뒤집어도 모양이 그대로고 부호만 바뀌어.",
-      "그 부호가 control 쪽으로 되돌아와. 이걸 위상 킥백이라고 해. 양자 알고리즘이 답을 뽑아내는 방식이야."
+      "앞 레슨에서 H와 H 사이를 비워 두니 전부 제자리로 돌아왔지. 이번엔 그 사이에 CX를 넣는다.",
+      "그런데 CX의 target을 어떤 상태로 두느냐에 따라 결과가 달라져. 같은 회로를 두 번 돌려서 비교해 보자.",
+      "target을 X 다음 H로 만든 상태를 |−⟩라고 불러. 1에서 시작한 중첩이야 — 7번 레슨에서 이미 만들어 본 적 있어."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(3, 2)\n\nqc.h(0); qc.h(1)     # control 두 개를 중첩으로\nqc.x(2); qc.h(2)     # target을 |-> 상태로\n\n# TODO: 두 control 각각에서 target으로 CX를 걸자\n\n\nqc.h(0); qc.h(1)     # control을 다시 H로 되돌려 본다\nqc.measure([0, 1], [0, 1])\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint('control 두 개를 재면:', counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# 같은 회로를 target 상태만 바꿔서 두 번 돌린다\nfor minus, label in ((False, '|0>'), (True, '|->')):\n    qc = QuantumCircuit(3, 2)\n\n    qc.h(0); qc.h(1)          # control 두 개를 중첩으로\n    if minus:\n        qc.x(2); qc.h(2)      # target을 |-> 로\n\n    # TODO: 두 control 각각에서 target으로 CX를 걸자\n\n\n    qc.h(0); qc.h(1)          # control을 다시 H로 되돌린다\n    qc.measure([0, 1], [0, 1])\n\n    c = sim.run(transpile(qc, sim), shots=512).result().get_counts()\n    print(f'  target이 {label:4} 일 때 → {len(c)}가지: {sorted(c)}')\n",
     "hints": [
-      "평소처럼 걸면 돼. 위 두 줄이 이미 control과 target을 준비해 뒀어.",
-      "두 줄이야. control은 0번과 1번, target은 둘 다 2번으로 같아.",
-      "정답: qc.cx(0, 2) 와 qc.cx(1, 2). 11만 나오면 성공이야 — 건드린 건 target인데 바뀐 건 control 둘 다야."
+      "앞 레슨에서 비워 뒀던 그 자리야. 이번엔 CX를 넣는 거고.",
+      "두 줄이야. control은 0번과 1번, target은 둘 다 2번으로 같아. if 문 밖, TODO와 같은 깊이로 써.",
+      "정답: qc.cx(0, 2) 와 qc.cx(1, 2). target이 |->일 때 11 하나만 나오면 성공이야."
     ],
     "check": [
       {
@@ -1383,19 +1383,19 @@
         "message": "CX가 아직 없어요."
       },
       {
-        "type": "counts_keys",
-        "keys": [
-          "11"
+        "type": "stdout_contains",
+        "needles": [
+          "|->  일 때 → 1가지: ['11']"
         ],
-        "message": "11만 나와야 하는데 아직 그렇지 않아요."
+        "message": "target이 |->일 때 결과가 한 가지로 모여야 해요."
       }
     ],
     "docs": [],
     "reflection": "우리는 target에 CX를 걸었는데 바뀐 건 control이었어. 어떻게 이런 일이 가능할까?",
-    "extra": "target을 |-> 로 만드는 두 줄(x와 h)을 지우고 돌려 봐. 결과가 어떻게 달라져?",
+    "extra": "CX를 0번 하나만 걸면 어떻게 될까? |->일 때 01만 나올 거야 — 건드린 쪽만 1이 된다.",
     "solution": {
-      "code": "qc.cx(0, 2)\nqc.cx(1, 2)",
-      "explanation": "target이 |−⟩일 때 CX를 걸면 target은 그대로이고 control에 위상이 붙는다. 이걸 위상 킥백이라고 한다. control을 H로 되돌리면 그 위상이 측정 가능한 값으로 드러나서, CX를 건 쪽이 1로 나온다. control이 둘이어도 각각에 따로 일어난다 — 여기서 CX를 하나만 걸면 그쪽만 1이 된다. 다음 레슨의 상자가 이 성질을 쓴다."
+      "code": "qc.cx(0, 2)\n    qc.cx(1, 2)",
+      "explanation": "같은 CX인데 target 상태에 따라 결과가 갈린다. target이 |0>이면 control이 target과 얽혀 버려서 control만 재면 두 가지가 뒤섞여 나온다 — 무엇을 했는지 읽을 수 없다. target을 |->로 두면 target은 그대로이고 control에만 위상이 붙는다. 이걸 위상 킥백이라고 한다. 마지막 H가 그 위상을 값으로 바꿔 줘서, CX를 건 control이 1로 드러난다. 건드린 건 target인데 답이 control에 적히는 것 — 다음 두 레슨이 이 성질 위에 서 있다."
     }
   },
   {
@@ -1408,7 +1408,7 @@
     "concept": [
       "숨은 비트열을 가진 상자가 있어. 입력을 넣으면 답을 하나 돌려줘.",
       "상자 안은 간단해 — 비밀의 1인 자리마다 CX를 걸어 둔 거야. 입력의 그 자리가 1이면 답이 뒤집힌다.",
-      "001을 넣으면 비밀의 0번 자리를, 010을 넣으면 1번 자리를 알 수 있어. 자리 수만큼 물어야 하지."
+      "001을 넣으면 비밀의 0번 자리를, 010을 넣으면 1번 자리를 알 수 있어. 자리 수만큼 물어야 하지. 다음 레슨에서 같은 상자에 딱 한 번만 묻는다 — 앞에서 본 위상 킥백을 쓴다."
     ],
     "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\nsecret = '101'      # 상자가 숨기고 있는 값\n\nfor x in ('001', '010', '100'):\n    qc = QuantumCircuit(4, 1)\n\n    # 입력 x를 심는다\n    for i, bit in enumerate(reversed(x)):\n        if bit == '1':\n            qc.x(i)\n\n    # 상자 안 — 비밀의 1인 자리마다 CX\n    for i, bit in enumerate(reversed(secret)):\n        if bit == '1':\n            # TODO: i번을 control, 답 자리인 3번을 target으로 CX를 걸자\n\n\n    qc.measure(3, 0)\n    k = list(sim.run(transpile(qc, sim), shots=64).result().get_counts())[0]\n    print(f'  {x} 를 넣으면 → {k}')\n",
     "hints": [
