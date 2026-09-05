@@ -1360,43 +1360,32 @@
     "week": 3,
     "session": 3,
     "title": "위상 킥백",
-    "subtitle": "사이에 CX를 넣어 보면",
-    "goal": "H와 H 사이에 CX를 넣고, target 상태를 바꿔 가며 control이 어떻게 달라지는지 확인한다.",
+    "subtitle": "건드린 건 target인데",
+    "goal": "target을 |−⟩로 만들어 두고 CX를 건 뒤, target이 아니라 control을 재서 1이 나오는 것을 확인한다.",
     "concept": [
-      "앞 레슨에서 H와 H 사이를 비워 두니 전부 제자리로 돌아왔지. 이번엔 그 사이에 CX를 넣는다.",
-      "그런데 CX의 target을 어떤 상태로 두느냐에 따라 결과가 달라져. 같은 회로를 두 번 돌려서 비교해 보자.",
-      "target을 X 다음 H로 만든 상태를 |−⟩라고 불러. 1에서 시작한 중첩이야 — 7번 레슨에서 이미 만들어 본 적 있어."
+      "CX는 control이 1이면 target을 뒤집어. 그래서 바뀌는 건 target이라고 배웠지.",
+      "그런데 target을 특별한 상태로 두면 이야기가 달라져. target은 그대로인데 control 쪽이 바뀐다.",
+      "그 특별한 상태가 |−⟩야. X로 1을 만든 다음 H를 건 것 — 7번 레슨에서 이미 만들어 봤어."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\n# 같은 회로를 target 상태만 바꿔서 두 번 돌린다\nfor minus, label in ((False, '|0>'), (True, '|->')):\n    qc = QuantumCircuit(3, 2)\n\n    qc.h(0); qc.h(1)          # control 두 개를 중첩으로\n    if minus:\n        qc.x(2); qc.h(2)      # target을 |-> 로\n\n    # TODO: 두 control 각각에서 target으로 CX를 걸자\n\n\n    qc.h(0); qc.h(1)          # control을 다시 H로 되돌린다\n    qc.measure([0, 1], [0, 1])\n\n    c = sim.run(transpile(qc, sim), shots=512).result().get_counts()\n    print(f'  target이 {label:4} 일 때 → {len(c)}가지: {sorted(c)}')\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(2, 1)\n\nqc.h(0)              # control을 중첩으로\n\n# TODO: target(1번)을 |-> 상태로 만들자\n#  X로 1을 만든 다음 H를 건다\n\n\nqc.cx(0, 1)          # control이 1이면 target을 뒤집는다\nqc.h(0)              # control을 다시 H로 되돌린다\n\nqc.measure(0, 0)     # target이 아니라 control을 잰다\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=512).result().get_counts()\nprint('control:', counts)\n",
     "hints": [
-      "앞 레슨에서 비워 뒀던 그 자리야. 이번엔 CX를 넣는 거고.",
-      "두 줄이야. control은 0번과 1번, target은 둘 다 2번으로 같아. if 문 밖, TODO와 같은 깊이로 써.",
-      "정답: qc.cx(0, 2) 와 qc.cx(1, 2). target이 |->일 때 11 하나만 나오면 성공이야."
+      "7번 레슨에서 X 다음에 H를 걸어 봤지. 그때 만든 게 |−⟩야. 이번엔 1번 큐비트에 만든다.",
+      "두 줄이야. 1번 큐비트에 X를 걸고, 그다음 줄에 H를 걸어.",
+      "정답: qc.x(1) 과 qc.h(1). control이 1만 나오면 성공이야."
     ],
-    "check": [
-      {
-        "type": "circuit_ops",
-        "ops": [
-          {
-            "name": "cx"
-          }
-        ],
-        "message": "CX가 아직 없어요."
-      },
-      {
-        "type": "stdout_contains",
-        "needles": [
-          "|->  일 때 → 1가지: ['11']"
-        ],
-        "message": "target이 |->일 때 결과가 한 가지로 모여야 해요."
-      }
-    ],
+    "check": {
+      "type": "counts_keys",
+      "keys": [
+        "1"
+      ],
+      "message": "control이 1만 나와야 하는데 아직 그렇지 않아요."
+    },
     "docs": [],
     "reflection": "우리는 target에 CX를 걸었는데 바뀐 건 control이었어. 어떻게 이런 일이 가능할까?",
-    "extra": "CX를 0번 하나만 걸면 어떻게 될까? |->일 때 01만 나올 거야 — 건드린 쪽만 1이 된다.",
+    "extra": "방금 쓴 두 줄을 지우고 다시 돌려 봐. control이 0과 1로 뒤섞일 거야 — target이 |−⟩일 때만 답이 읽힌다.",
     "solution": {
-      "code": "qc.cx(0, 2)\n    qc.cx(1, 2)",
-      "explanation": "같은 CX인데 target 상태에 따라 결과가 갈린다. target이 |0>이면 control이 target과 얽혀 버려서 control만 재면 두 가지가 뒤섞여 나온다 — 무엇을 했는지 읽을 수 없다. target을 |->로 두면 target은 그대로이고 control에만 위상이 붙는다. 이걸 위상 킥백이라고 한다. 마지막 H가 그 위상을 값으로 바꿔 줘서, CX를 건 control이 1로 드러난다. 건드린 건 target인데 답이 control에 적히는 것 — 다음 두 레슨이 이 성질 위에 서 있다."
+      "code": "qc.x(1)\nqc.h(1)",
+      "explanation": "CX를 걸었는데 target은 그대로이고 control이 1이 됐다. 건드린 쪽과 바뀐 쪽이 반대라서 위상 킥백이라고 부른다. target이 |−⟩일 때만 이렇게 된다 — 두 줄을 지우면 control이 0과 1로 뒤섞여서 아무것도 읽어낼 수 없다. 마지막 H가 control에 붙은 위상을 잴 수 있는 값으로 바꿔 준다. 다음 두 레슨에서 이 성질로 상자 안의 비밀을 읽어낸다."
     }
   },
   {
