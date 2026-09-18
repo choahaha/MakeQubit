@@ -164,7 +164,7 @@
       "큐비트 하나면 0 아니면 1, 두 개면 0~3, 세 개면 0~7이야. 전부 같은 확률로 나와.",
       "컴퓨터가 만드는 보통 난수는 사실 규칙으로 계산한 가짜 난수야. 이건 진짜 무작위야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(3, 3)\n\n# TODO: 세 큐비트 모두에 H를 얹어 보자\n\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint('나온 숫자 종류:', len(counts))\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nqc = QuantumCircuit(3, 3)\n\n# TODO: 000부터 111까지 여덟 가지가 고르게 나오도록 만들어 보자\n\n\n\nqc.measure([0, 1, 2], [0, 1, 2])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint('나온 숫자 종류:', len(counts))\n",
     "hints": [
       "한 큐비트에 H를 걸면 그 큐비트가 반반이 돼. 세 개면 조합이 몇 가지가 될까?",
       "세 줄이야. 번호만 0, 1, 2로 바꿔서 각각 H를 얹어.",
@@ -364,7 +364,7 @@
       "둘 다 H를 얹으면 네 가지가 각각 약 25%씩 나와.",
       "지금은 두 큐비트가 서로 아무 상관이 없어. 각자 따로 동전을 던지는 셈이야."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\n# 큐비트 2개, 비트 2개\nqc = QuantumCircuit(2, 2)\n\n# TODO: 0번과 1번 큐비트에 각각 H 게이트를 얹자\n\n\n\n# 두 큐비트를 한 번에 측정하기\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\n# 큐비트 2개, 비트 2개\nqc = QuantumCircuit(2, 2)\n\n# TODO: 네 가지 결과가 골고루 나오도록 게이트를 얹어 보자\n\n\n\n# 두 큐비트를 한 번에 측정하기\nqc.measure([0, 1], [0, 1])\n\nsim = AerSimulator()\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\n",
     "hints": [
       "한 큐비트에 H를 걸면 그 큐비트가 반반이 돼. 두 개 다 걸면 조합이 몇 가지일까?",
       "두 줄이야. 번호만 0과 1로 바꿔서 각각 H를 얹어.",
@@ -710,13 +710,21 @@
       "회로도에서는 된다. 0번과 3번을 묶어도 벨 상태와 똑같이 얽혀.",
       "하지만 실제 기계에서는 달라. 붙어 있는 큐비트끼리만 게이트를 걸 수 있어서, 앞 레슨의 SWAP으로 데려와야 해."
     ],
-    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(4, 4)\n\nqc.h(0)\n\n# TODO: 멀리 떨어진 두 큐비트를 CX로 묶어 보자\n\n\nqc.measure([0, 1, 2, 3], [0, 1, 2, 3])\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
+    "starter_code": "from qiskit import QuantumCircuit, transpile\nfrom qiskit_aer import AerSimulator\n\nsim = AerSimulator()\n\nqc = QuantumCircuit(4, 4)\n\nqc.h(0)\n\n# TODO: 0000과 1001만 나오도록 게이트를 얹어 보자\n\n\nqc.measure([0, 1, 2, 3], [0, 1, 2, 3])\ncounts = sim.run(transpile(qc, sim), shots=1024).result().get_counts()\nprint(counts)\nprint(qc.draw())\n",
     "hints": [
       "옆에 붙어 있든 아니든 쓰는 법은 똑같아.",
       "CX 한 줄이야. 0번이 control, 3번이 target.",
       "정답: qc.cx(0, 3). 0000과 1001만 나오면 성공이야."
     ],
     "check": [
+      {
+        "type": "counts_keys",
+        "keys": [
+          "0000",
+          "1001"
+        ],
+        "message": "0000과 1001만 나와야 하는데 아직 그렇지 않아요."
+      },
       {
         "type": "circuit_ops",
         "ops": [
@@ -729,14 +737,6 @@
           }
         ],
         "message": "0번과 3번을 잇는 CX가 아직 없어요."
-      },
-      {
-        "type": "counts_keys",
-        "keys": [
-          "0000",
-          "1001"
-        ],
-        "message": "0000과 1001만 나와야 하는데 아직 그렇지 않아요."
       }
     ],
     "docs": [],
