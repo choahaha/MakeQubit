@@ -63,6 +63,10 @@ MAX_OUTPUT_CHARS = 20_000
 MAX_QUBITS = 12
 MAX_SHOTS = 20_000
 
+# 학생 코드가 시뮬레이터를 몇 번 돌렸는가. 리스트인 이유는 guarded_run 안에서
+# global 선언 없이 고치기 위해서다.
+RUN_COUNT = [0]
+
 # --- import policy -----------------------------------------------------------
 # Denied wins over everything, including modules already loaded by qiskit.
 DENIED_MODULES = {
@@ -217,6 +221,10 @@ def install_size_caps():
                 f"shots는 {MAX_SHOTS:,}번까지 할 수 있어요 "
                 f"({shots:,}번을 요청했어요). 1024번이면 충분히 보여요."
             )
+        # 몇 번 돌렸는지 센다. 반복문으로 여러 번 돌리는 레슨에서는 오른쪽
+        # 그래프가 마지막 회차만 보여주는데, 화면에 '측정 결과'라고만 적혀
+        # 있으면 나머지 회차가 사라진 것처럼 보인다.
+        RUN_COUNT[0] += 1
         return original_run(self, *args, **kwargs)
 
     AerSimulator.run = guarded_run
@@ -390,6 +398,7 @@ def execute(code, result_file):
         "circuit_text": circuit_text,
         "circuit_spec": circuit_spec,
         "execution_time_ms": elapsed_ms,
+        "sim_runs": RUN_COUNT[0],
     })
 
     with open(result_file, "w", encoding="utf-8") as fh:

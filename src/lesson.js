@@ -306,6 +306,31 @@ function renderStatus(kind, title, detail) {
   }
 }
 
+/**
+ * 시뮬레이터를 여러 번 돌린 코드라면 그 사실을 밝힌다.
+ *
+ * 반복문으로 네 입력을 돌리는 레슨에서는 그래프와 회로가 마지막 회차만
+ * 보여준다. 화면에 '측정 결과'라고만 적혀 있으면 나머지 세 회차가 사라진
+ * 것처럼 보이고, 1 XOR 1 = 0 이라 0만 나오는 것을 회로가 틀린 것으로 읽는다.
+ */
+function renderRunScope(simRuns) {
+  const many = (simRuns || 0) > 1;
+  document.getElementById('counts-title').textContent =
+    many ? '측정 결과 — 마지막 회차' : '측정 결과';
+  document.getElementById('circuit-title').textContent =
+    many ? '회로 — 마지막 회차' : '회로';
+
+  const note = document.getElementById('counts-note');
+  if (many) {
+    note.textContent =
+      `이 코드는 회로를 ${simRuns}번 돌렸어. 그래프와 회로는 마지막 회차만 보여줘 — `
+      + '나머지는 아래 출력에서 볼 수 있어.';
+    note.classList.remove('hidden');
+  } else {
+    note.classList.add('hidden');
+  }
+}
+
 function renderCounts(counts) {
   const block = document.getElementById('counts-block');
   if (!counts) {
@@ -369,6 +394,7 @@ function renderCounts(counts) {
 
 function renderResult(result) {
   document.getElementById('result-empty').classList.add('hidden');
+  renderRunScope(result.sim_runs);
 
   const stdoutBlock = document.getElementById('stdout-block');
   let text = (result.stdout || '').trimEnd();
